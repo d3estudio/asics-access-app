@@ -1,51 +1,100 @@
 package co.ferreri.asicsaccess;
 
-import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
+import android.view.SurfaceView;
 
-import com.google.zxing.Result;
+import github.nisrulz.qreader.QRDataListener;
+import github.nisrulz.qreader.QREader;
 
-import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
-
-public class MainActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
-    private ZXingScannerView mScannerView;
-    private static final String TAG = "MainActivity";
-
+public class MainActivity extends AppCompatActivity {
+    private SurfaceView surfaceView;
+    QREader qrEader;
+    Handler mainHandler = new Handler(Looper.getMainLooper());
+    boolean isOpen = false;
 
     @Override
-    public void onCreate(Bundle state) {
-        super.onCreate(state);
-        mScannerView = new ZXingScannerView(this);   // Programmatically initialize the scanner view
-        setContentView(mScannerView);                // Set the scanner view as the content view
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        surfaceView = (SurfaceView) findViewById(R.id.camera_view);
+
+        createQreader();
+
+
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mScannerView.setResultHandler(this); // Register ourselves as a handler for scan results.
-        mScannerView.startCamera();          // Start camera on resume
+    protected void onStart() {
+        super.onStart();
+
+        // Call in onStart
+        qrEader.start();
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        mScannerView.stopCamera();           // Stop camera on pause
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Call in onDestroy
+        qrEader.stop();
+        qrEader.releaseAndCleanup();
     }
 
-    @Override
-    public void handleResult(Result rawResult) {
-        // Do something with the result here
-        Log.v(TAG, rawResult.getText()); // Prints scan results
-        //Log.v(TAG, rawResult.getBarcodeFormat().toString()); // Prints the scan format (qrcode, pdf417 etc.)
+    private void createQreader() {
+        qrEader = new QREader.Builder(this, surfaceView, new QRDataListener() {
+            @Override
+            public void onDetected(final String data) {
+                if (!isOpen) {
+                    Log.d("QREader Open Dilaod", "Value : " + data);
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            isOpen = true;
+                            showDialog(data);
+                        }
+                    });
+                }
+            }
+        }).build();
 
+        qrEader.init();
+    }
 
-        Toast.makeText(getApplicationContext(),"This is my toast message",Toast.LENGTH_SHORT).show();
+    private void showDialog(String qrcode) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Confirmar convidado?");
+        builder.setMessage(qrcode);
 
-        // If you would like to resume scanning, call this method below:
-        mScannerView.resumeCameraPreview(this);
+        String positiveText = getString(android.R.string.ok);
+        builder.setPositiveButton(positiveText,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        System.out.println("OK");
+                        isOpen = false;
+                    }
+                });
+
+        String negativeText = getString(android.R.string.cancel);
+        builder.setNegativeButton(negativeText,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        System.out.println("CANCEL");
+                        isOpen = false;
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+
+        dialog.show();
     }
 }
