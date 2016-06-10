@@ -29,7 +29,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Creating table query
     private static final String CREATE_TABLE = "create table " + TABLE_NAME + "(" + ID
-            + " INTEGER PRIMARY KEY, " + NAME + " TEXT NOT NULL, " + EMAIL + " TEXT, " + QRCODE + " TEXT, " + UPDATED_AT + " DATE);";
+            + " INTEGER PRIMARY KEY, " + NAME + " TEXT NOT NULL, " + EMAIL + " TEXT, " + QRCODE + " TEXT, " + UPDATED_AT + " DATETIME);";
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -46,12 +46,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public Guest getGuest(String name) {
+    public Guest getGuest(String str) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_NAME, new String[] { ID,
-                        NAME, EMAIL, QRCODE, UPDATED_AT }, NAME + " LIKE ? ",
-                new String[] { name+"%" }, null, null, null, null);
+        Cursor cursor = db.query(
+                TABLE_NAME,
+                new String[] { ID, NAME, EMAIL, QRCODE, UPDATED_AT },
+                NAME + " LIKE ? OR " + EMAIL + " LIKE ? ",
+                new String[] { str+"%", str+"%" },
+                null, null, null, null
+        );
 
 
         if (cursor != null)
@@ -72,13 +76,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return guest;
     }
 
+    public String getLastUpdated() {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_NAME,
+                new String[] { "max("+UPDATED_AT+")" },
+                null,
+                null,
+                null, null, null, null
+        );
+
+
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        // return guest
+        return cursor.getString(0);
+    }
+
 
     public ArrayList<Guest> getAllGuest() {
         SQLiteDatabase db = this.getReadableDatabase();
         ArrayList<Guest> guestList = null;
         try{
             guestList = new ArrayList<Guest>();
-            String QUERY = "SELECT * FROM "+TABLE_NAME;
+            String QUERY = "SELECT * FROM " + TABLE_NAME;
             Cursor cursor = db.rawQuery(QUERY, null);
             if(!cursor.isLast())
             {

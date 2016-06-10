@@ -48,9 +48,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String search = etSearch.getText().toString();
-                etSearch.setText("");
+                if (search.length() < 1)
+                    return;
+
                 Guest foundGuest = db.getGuest(search);
+                String last = db.getLastUpdated();
+                etSearch.setText("");
                 if (foundGuest != null){
+                    System.out.println("Last updated "+last);
                     showDialog(foundGuest.getName());
                 }
 
@@ -109,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         System.out.println("OK");
-                        isOpen = false;
                     }
                 });
 
@@ -119,9 +123,16 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         System.out.println("CANCEL");
-                        isOpen = false;
                     }
                 });
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                System.out.println("OnDismiss");
+                isOpen = false;
+            }
+        });
 
         AlertDialog dialog = builder.create();
 
@@ -145,15 +156,11 @@ public class MainActivity extends AppCompatActivity {
 
                 try{
                     results = new JSONArray(data);
-                    System.out.println(results);
 
                     for (int i=0; i<results.length(); i++){
                         Guest guest = new Guest();
                         JSONObject jsonObj;
                         jsonObj = results.getJSONObject(i);
-
-                        System.out.println("json obj"+jsonObj);
-                        System.out.println("json var"+jsonObj.getString("name"));
 
                         guest.setId(jsonObj.getInt("id"));
                         guest.setName(jsonObj.getString("name"));
@@ -166,8 +173,8 @@ public class MainActivity extends AppCompatActivity {
 
                     db.addOrUpdateGuests(guestArray);
 
-//                    ArrayList<Guest> all = new ArrayList<>(db.getAllGuest());
-//                    System.out.println(all);
+                    ArrayList<Guest> all = new ArrayList<>(db.getAllGuest());
+                    System.out.println(all);
 
 
 
