@@ -1,20 +1,19 @@
 package co.ferreri.asicsaccess;
 
 
-import java.util.Date;
-
 public class Guest {
 
     private int id;
     private String name;
     private String email;
     private String qrCode;
-    private Date updatedAt;
+    private String updatedAt;
 
     public Guest() {
+
     }
 
-    public Guest(int id, String name, String email, String qrCode, Date updatedAt) {
+    public Guest(int id, String name, String email, String qrCode, String updatedAt) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -54,11 +53,11 @@ public class Guest {
         this.qrCode = qrCode;
     }
 
-    public Date getUpdatedAt() {
+    public String getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
     }
 }
