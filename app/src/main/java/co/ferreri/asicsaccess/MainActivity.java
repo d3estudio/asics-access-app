@@ -1,14 +1,20 @@
 package co.ferreri.asicsaccess;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
@@ -47,23 +53,48 @@ public class MainActivity extends AppCompatActivity {
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String search = etSearch.getText().toString();
-                if (search.length() < 1)
-                    return;
+                onGuestSearch();
+            }
+        });
 
-                Guest foundGuest = db.getGuest(search);
-                String last = db.getLastUpdated();
-                etSearch.setText("");
-                if (foundGuest != null){
-                    System.out.println("Last updated "+last);
-                    showDialog(foundGuest.getName());
+        etSearch.setOnKeyListener(new View.OnKeyListener() {
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                // If the event is a key-down event on the "enter" button
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    // Perform action on key press
+                    onGuestSearch();
+                    return true;
                 }
-
+                return false;
             }
         });
 
         createQreader();
         getGuestApi();
+    }
+
+    public void onGuestSearch(){
+        String search = etSearch.getText().toString();
+        if (search.length() < 1)
+            return;
+
+        Guest foundGuest = db.getGuest(search);
+        String last = db.getLastUpdated();
+        etSearch.setText("");
+
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
+
+        if (foundGuest != null){
+            System.out.println("Last updated "+last);
+            showDialog(foundGuest.getName());
+        }else {
+            //centered text on toast
+            Toast toast = Toast.makeText(this,"Usuário não encontrado\nBusque novamente por nome ou email", Toast.LENGTH_SHORT);
+            TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+            if( v != null) v.setGravity(Gravity.CENTER);
+            toast.show();
+        }
     }
 
     @Override
