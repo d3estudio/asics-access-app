@@ -2,9 +2,12 @@ package co.ferreri.asicsaccess;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.media.Image;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -13,6 +16,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +39,7 @@ import github.nisrulz.qreader.QREader;
 public class MainActivity extends AppCompatActivity {
     SurfaceView surfaceView;
     EditText etSearch;
-    Button btnSearch;
+    ImageView btnSearch;
     QREader qrEader;
 
     boolean isOpen = false;
@@ -49,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         surfaceView = (SurfaceView) findViewById(R.id.camera_view);
         etSearch = (EditText) findViewById(R.id.etSearch);
-        btnSearch = (Button) findViewById(R.id.btnSearch);
+        btnSearch = (ImageView) findViewById(R.id.btnSearch);
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,6 +73,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        etSearch.addTextChangedListener(new TextWatcher(){
+            public void afterTextChanged(Editable s) {
+                if(s.length()>0)
+                    btnSearch.setVisibility(View.VISIBLE);
+                else
+                    btnSearch.setVisibility(View.INVISIBLE);
+
+            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+            public void onTextChanged(CharSequence s, int start, int before, int count){}
+        });
+
         createQreader();
         getGuestApi();
     }
@@ -80,14 +96,14 @@ public class MainActivity extends AppCompatActivity {
 
         Guest foundGuest = db.getGuest(search);
         String last = db.getLastUpdated();
-        etSearch.setText("");
 
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
 
         if (foundGuest != null){
+            etSearch.setText("");
+            imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
             System.out.println("Last updated "+last);
-            showDialog(foundGuest.getName());
+            showDialog(foundGuest);
         }else {
             //centered text on toast
             Toast toast = Toast.makeText(this,"Usuário não encontrado\nBusque novamente por nome ou email", Toast.LENGTH_SHORT);
@@ -123,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                     surfaceView.post(new Runnable() {
                         @Override
                         public void run() {
-                            showDialog(data);
+                            //showDialog(data);
                         }
                     });
                 }
@@ -133,18 +149,18 @@ public class MainActivity extends AppCompatActivity {
         qrEader.init();
     }
 
-    private void showDialog(String qrcode) {
+    private void showDialog(Guest guest) {
         isOpen = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Confirmar convidado?");
-        builder.setMessage(qrcode);
+        builder.setTitle("Confirmar presença?");
+        builder.setMessage(guest.getName()+"\n"+guest.getEmail());
 
-        String positiveText = getString(android.R.string.ok);
+        String positiveText = "CONFIRMAR";
         builder.setPositiveButton(positiveText,
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        System.out.println("OK");
+                        System.out.println("CONFIRMAR");
                     }
                 });
 
