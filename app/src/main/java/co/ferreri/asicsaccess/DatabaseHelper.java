@@ -19,17 +19,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String NAME = "nome";
     public static final String EMAIL = "email";
     public static final String QRCODE = "qrcode";
+    public static final String OCCUPATION = "occupation";
     public static final String UPDATED_AT = "updated_at";
 
     // Database Information
-    static final String DB_NAME = "ASICS.DB";
+    static final String DB_NAME = "ASICS";
 
     // database version
     static final int DB_VERSION = 1;
 
     // Creating table query
     private static final String CREATE_TABLE = "create table " + TABLE_NAME + "(" + ID
-            + " INTEGER PRIMARY KEY, " + NAME + " TEXT NOT NULL, " + EMAIL + " TEXT, " + QRCODE + " TEXT, " + UPDATED_AT + " DATETIME);";
+            + " INTEGER PRIMARY KEY, " + NAME + " TEXT NOT NULL, " + EMAIL + " TEXT, " +
+            QRCODE + " TEXT, " + OCCUPATION + " TEXT, " + UPDATED_AT + " DATETIME);";
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -46,12 +48,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public Guest getGuest(String str) {
+    public Guest getGuestByName(String str) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(
                 TABLE_NAME,
-                new String[] { ID, NAME, EMAIL, QRCODE, UPDATED_AT },
+                new String[] { ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT },
                 NAME + " LIKE ? OR " + EMAIL + " LIKE ? ",
                 new String[] { str+"%", str+"%" },
                 null, null, null, null
@@ -70,7 +72,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.getString(1),
                 cursor.getString(2),
                 cursor.getString(3),
-                cursor.getString(4)
+                cursor.getString(4),
+                cursor.getString(5)
+        );
+        // return guest
+        return guest;
+    }
+
+    public Guest getGuestByQrcode(String str) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_NAME,
+                new String[] { ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT },
+                QRCODE + "=?",
+                new String[] { str },
+                null, null, null, null
+        );
+
+
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        if (!cursor.moveToFirst())
+            return null;
+
+
+
+        Guest guest = new Guest(
+                Integer.parseInt(cursor.getString(0)),
+                cursor.getString(1),
+                cursor.getString(2),
+                cursor.getString(3),
+                cursor.getString(4),
+                cursor.getString(5)
         );
         // return guest
         return guest;
@@ -112,7 +147,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     guest.setName(cursor.getString(1));
                     guest.setEmail(cursor.getString(2));
                     guest.setQrCode(cursor.getString(3));
-                    guest.setUpdatedAt(cursor.getString(4));
+                    guest.setOccupation(cursor.getString(4));
+                    guest.setUpdatedAt(cursor.getString(5));
                     guestList.add(guest);
                 }
             }
@@ -133,6 +169,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values.put(NAME, guest.getName());
                 values.put(EMAIL, guest.getEmail());
                 values.put(QRCODE, guest.getQrCode());
+                values.put(OCCUPATION, guest.getOccupation());
                 values.put(UPDATED_AT, guest.getUpdatedAt());
                 db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
             }

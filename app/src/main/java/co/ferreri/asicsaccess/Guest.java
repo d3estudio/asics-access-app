@@ -7,17 +7,19 @@ public class Guest {
     private String name;
     private String email;
     private String qrCode;
+    private String occupation;
     private String updatedAt;
 
     public Guest() {
 
     }
 
-    public Guest(int id, String name, String email, String qrCode, String updatedAt) {
+    public Guest(int id, String name, String email, String qrCode, String occupation, String updatedAt) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.qrCode = qrCode;
+        this.occupation = occupation;
         this.updatedAt = updatedAt;
     }
 
@@ -51,6 +53,14 @@ public class Guest {
 
     public void setQrCode(String qrCode) {
         this.qrCode = qrCode;
+    }
+
+    public String getOccupation() {
+        return occupation;
+    }
+
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
     }
 
     public String getUpdatedAt() {

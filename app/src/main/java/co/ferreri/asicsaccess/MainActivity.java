@@ -2,7 +2,6 @@ package co.ferreri.asicsaccess;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.media.Image;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,7 +28,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import github.nisrulz.qreader.QRDataListener;
 import github.nisrulz.qreader.QREader;
@@ -57,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onGuestSearch();
+                onGuestSearchByName();
             }
         });
 
@@ -66,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                 // If the event is a key-down event on the "enter" button
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     // Perform action on key press
-                    onGuestSearch();
+                    onGuestSearchByName();
                     return true;
                 }
                 return false;
@@ -85,25 +89,30 @@ public class MainActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count){}
         });
 
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                getGuestApi();
+            }
+        }, 0, 1, TimeUnit.HOURS);
+
         createQreader();
-        getGuestApi();
     }
 
-    public void onGuestSearch(){
+    public void onGuestSearchByName(){
         String search = etSearch.getText().toString();
         if (search.length() < 1)
             return;
 
-        Guest foundGuest = db.getGuest(search);
-        String last = db.getLastUpdated();
+        Guest guest = db.getGuestByName(search);
 
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        if (foundGuest != null){
+        if (guest != null){
             etSearch.setText("");
             imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
-            System.out.println("Last updated "+last);
-            showDialog(foundGuest);
+            showDialog(guest);
         }else {
             //centered text on toast
             Toast toast = Toast.makeText(this,"Usuário não encontrado\nBusque novamente por nome ou email", Toast.LENGTH_SHORT);
@@ -113,21 +122,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+    public void onGuestSearchByQrcode(String qrcode){
+        Guest guest = db.getGuestByQrcode(qrcode);
 
-        // Call in onStart
-        qrEader.start();
-    }
+        if (guest != null){
+            showDialog(guest);
+        }else{
+            isOpen = true;
+            Toast toast = Toast.makeText(this,"QRCode inválido, tente novamente", Toast.LENGTH_SHORT);
+            TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+            if( v != null) v.setGravity(Gravity.CENTER);
+            toast.show();
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // Call in onDestroy
-        qrEader.stop();
-        qrEader.releaseAndCleanup();
+            surfaceView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    isOpen = false;
+                }
+            }, 3000);
+        }
     }
 
     private void createQreader() {
@@ -139,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                     surfaceView.post(new Runnable() {
                         @Override
                         public void run() {
-                            //showDialog(data);
+                            onGuestSearchByQrcode(data);
                         }
                     });
                 }
@@ -153,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
         isOpen = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Confirmar presença?");
-        builder.setMessage(guest.getName()+"\n"+guest.getEmail());
+        builder.setMessage(guest.getName()+"\n"+guest.getEmail()+"\n"+guest.getOccupation());
 
         String positiveText = "CONFIRMAR";
         builder.setPositiveButton(positiveText,
@@ -187,8 +200,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getGuestApi(){
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        System.out.println("CALLLLLING API FUNCTION ______________ " + dateFormat.format(date));
         //get
-        Fuel.get("http://demo7110949.mockable.io/guests").responseString(new Handler<String>() {
+        Fuel.get("http://demo6882708.mockable.io/guests").responseString(new Handler<String>() {
             @Override
             public void failure(Request request, Response response, FuelError error) {
                 //do something when it is failure
@@ -213,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
                         guest.setName(jsonObj.getString("name"));
                         guest.setEmail(jsonObj.getString("email"));
                         guest.setQrCode(jsonObj.getString("qrcode"));
+                        guest.setOccupation(jsonObj.getString("occupation"));
                         guest.setUpdatedAt(jsonObj.getString("updated_at"));
 
                         guestArray.add(guest);
@@ -232,4 +249,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Call in onStart
+        qrEader.start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Call in onDestroy
+        qrEader.stop();
+        qrEader.releaseAndCleanup();
+    }
+
+
 }
