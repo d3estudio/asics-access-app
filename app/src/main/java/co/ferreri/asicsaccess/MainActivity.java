@@ -195,6 +195,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         AlertDialog dialog = builder.create();
+        dialog.getWindow().getAttributes().verticalMargin = 0.1F;
+
 
         dialog.show();
     }
