@@ -5,14 +5,20 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import java.util.ArrayList;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    // Table Name
-    public static final String TABLE_NAME = "GUESTS";
+    // Database Information
+    static final String DB_NAME = "ASICS.TEST2";
+
+    // database version
+    static final int DB_VERSION = 1;
+
+    // Table Names
+    public static final String TABLE_GUESTS = "GUESTS";
+    public static final String TABLE_LOGS = "LOGS";
 
     // Table columns
     public static final String ID = "id";
@@ -22,16 +28,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String OCCUPATION = "occupation";
     public static final String UPDATED_AT = "updated_at";
 
-    // Database Information
-    static final String DB_NAME = "ASICS";
+    public static final String GUEST_ID = "guestId";
+    public static final String ACTION = "action";
+    public static final String CREATED_AT = "created_at";
 
-    // database version
-    static final int DB_VERSION = 1;
+    // Creating guest table query
+    private static final String CREATE_TABLE_GUESTS = "create table "
+            + TABLE_GUESTS + "("
+            + ID + " INTEGER PRIMARY KEY, "
+            + NAME + " TEXT NOT NULL, "
+            + EMAIL + " TEXT, "
+            + QRCODE + " TEXT, "
+            + OCCUPATION + " TEXT, "
+            + UPDATED_AT + " DATETIME);";
 
-    // Creating table query
-    private static final String CREATE_TABLE = "create table " + TABLE_NAME + "(" + ID
-            + " INTEGER PRIMARY KEY, " + NAME + " TEXT NOT NULL, " + EMAIL + " TEXT, " +
-            QRCODE + " TEXT, " + OCCUPATION + " TEXT, " + UPDATED_AT + " DATETIME);";
+    // Creating log table query
+    private static final String CREATE_TABLE_LOGS = "create table "
+            + TABLE_LOGS + "("
+            + ID + " INTEGER PRIMARY KEY, "
+            + ACTION + " TEXT, "
+            + CREATED_AT + " DATETIME,"
+            + GUEST_ID + " INTEGER, "
+            + " FOREIGN KEY (" + GUEST_ID + ") REFERENCES " + TABLE_GUESTS + "(" + ID + "));";
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -39,12 +57,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(CREATE_TABLE);
+        db.execSQL(CREATE_TABLE_GUESTS);
+        db.execSQL(CREATE_TABLE_LOGS);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_GUESTS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOGS);
         onCreate(db);
     }
 
@@ -52,30 +72,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(
-                TABLE_NAME,
-                new String[] { ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT },
+                TABLE_GUESTS,
+                new String[]{ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT},
                 NAME + " LIKE ? OR " + EMAIL + " LIKE ? ",
-                new String[] { str+"%", str+"%" },
+                new String[]{str + "%", str + "%"},
                 null, null, null, null
         );
 
+        Guest guest = null;
 
-        if (cursor != null)
-            cursor.moveToFirst();
+        if (cursor.moveToFirst())
+            guest = cursorToGuest(cursor);
 
-        if (!cursor.moveToFirst())
-            return null;
+        cursor.close();
 
-
-        Guest guest = new Guest(
-                Integer.parseInt(cursor.getString(0)),
-                cursor.getString(1),
-                cursor.getString(2),
-                cursor.getString(3),
-                cursor.getString(4),
-                cursor.getString(5)
-        );
-        // return guest
         return guest;
     }
 
@@ -83,31 +93,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(
-                TABLE_NAME,
-                new String[] { ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT },
+                TABLE_GUESTS,
+                new String[]{ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT},
                 QRCODE + "=?",
-                new String[] { str },
+                new String[]{str},
                 null, null, null, null
         );
 
 
-        if (cursor != null)
-            cursor.moveToFirst();
+        Guest guest = null;
 
-        if (!cursor.moveToFirst())
-            return null;
-
+        if (cursor.moveToFirst())
+            guest = cursorToGuest(cursor);
 
 
-        Guest guest = new Guest(
-                Integer.parseInt(cursor.getString(0)),
-                cursor.getString(1),
-                cursor.getString(2),
-                cursor.getString(3),
-                cursor.getString(4),
-                cursor.getString(5)
-        );
-        // return guest
         return guest;
     }
 
@@ -115,49 +114,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(
-                TABLE_NAME,
-                new String[] { "max("+UPDATED_AT+")" },
+                TABLE_GUESTS,
+                new String[]{"max(" + UPDATED_AT + ")"},
                 null,
                 null,
                 null, null, null, null
         );
 
 
-        if (cursor != null)
-            cursor.moveToFirst();
+        cursor.moveToFirst();
 
-        // return guest
-        return cursor.getString(0);
+        String lastUpdated = cursor.getString(0);
+
+        cursor.close();
+
+        return lastUpdated;
     }
 
-
-    public ArrayList<Guest> getAllGuest() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<Guest> guestList = null;
-        try{
-            guestList = new ArrayList<Guest>();
-            String QUERY = "SELECT * FROM " + TABLE_NAME;
-            Cursor cursor = db.rawQuery(QUERY, null);
-            if(!cursor.isLast())
-            {
-                while (cursor.moveToNext())
-                {
-                    Guest guest = new Guest();
-                    guest.setId(cursor.getInt(0));
-                    guest.setName(cursor.getString(1));
-                    guest.setEmail(cursor.getString(2));
-                    guest.setQrCode(cursor.getString(3));
-                    guest.setOccupation(cursor.getString(4));
-                    guest.setUpdatedAt(cursor.getString(5));
-                    guestList.add(guest);
-                }
-            }
-            db.close();
-        }catch (Exception e){
-            Log.e("error",e+"");
-        }
-        return guestList;
-    }
 
     public void addOrUpdateGuests(ArrayList<Guest> guestList) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -171,11 +144,83 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values.put(QRCODE, guest.getQrCode());
                 values.put(OCCUPATION, guest.getOccupation());
                 values.put(UPDATED_AT, guest.getUpdatedAt());
-                db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                db.insertWithOnConflict(TABLE_GUESTS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
             }
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
         }
     }
+
+    public void addOrUpdateGuestLogs(ArrayList<GuestLog> guestLogList) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            for (GuestLog guestLog : guestLogList) {
+                values.put(ID, guestLog.getId());
+                values.put(ACTION, guestLog.getAction());
+                values.put(CREATED_AT, guestLog.getCreatedAt());
+                values.put(GUEST_ID, guestLog.getGuestId());
+                db.insertWithOnConflict(TABLE_LOGS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    public void addGuestLog(GuestLog guestLog) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(ID, guestLog.getId());
+        values.put(ACTION, guestLog.getAction());
+        values.put(CREATED_AT, guestLog.getCreatedAt());
+        values.put(GUEST_ID, guestLog.getGuestId());
+
+        long newRowId = db.insert(TABLE_LOGS, null, values);
+
+    }
+
+    private Guest cursorToGuest(Cursor cursor) {
+        return new Guest(
+                Integer.parseInt(cursor.getString(0)),
+                cursor.getString(1),
+                cursor.getString(2),
+                cursor.getString(3),
+                cursor.getString(4),
+                cursor.getString(5)
+        );
+    }
+
+    private GuestLog cursorToGuestLog(Cursor cursor) {
+        return new GuestLog(
+                Integer.parseInt(cursor.getString(0)),
+                cursor.getString(2),
+                cursor.getString(3),
+                Integer.parseInt(cursor.getString(1))
+        );
+    }
+
+
+//    public ArrayList<Guest> getAllGuest() {
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        ArrayList<Guest> guestList = null;
+//        try {
+//            guestList = new ArrayList<Guest>();
+//            String QUERY = "SELECT * FROM " + TABLE_GUESTS;
+//            Cursor cursor = db.rawQuery(QUERY, null);
+//            if (!cursor.isLast()) {
+//                while (cursor.moveToNext()) {
+//                    Guest guest = cursorToGuest(cursor);
+//                    guestList.add(guest);
+//                }
+//            }
+//            db.close();
+//        } catch (Exception e) {
+//            Log.e("error", e + "");
+//        }
+//        return guestList;
+//    }
 }

@@ -18,20 +18,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.kittinunf.fuel.Fuel;
-import com.github.kittinunf.fuel.core.FuelError;
-import com.github.kittinunf.fuel.core.Handler;
-import com.github.kittinunf.fuel.core.Request;
-import com.github.kittinunf.fuel.core.Response;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.joda.time.DateTime;
+import org.joda.time.LocalTime;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -45,10 +37,13 @@ public class MainActivity extends AppCompatActivity {
     EditText etSearch;
     ImageView btnSearch;
     QREader qrEader;
-
-    boolean isOpen = false;
+    Toast toast;
 
     DatabaseHelper db = new DatabaseHelper(this);
+    APIHelper api = new APIHelper(this);
+
+    private boolean isOpen = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,70 +72,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        etSearch.addTextChangedListener(new TextWatcher(){
+        etSearch.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
-                if(s.length()>0)
+                if (s.length() > 0)
                     btnSearch.setVisibility(View.VISIBLE);
                 else
                     btnSearch.setVisibility(View.INVISIBLE);
 
             }
-            public void beforeTextChanged(CharSequence s, int start, int count, int after){}
-            public void onTextChanged(CharSequence s, int start, int before, int count){}
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
         });
 
-        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
-        ses.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                getGuestApi();
-            }
-        }, 0, 1, TimeUnit.HOURS);
-
+        callAPIsHourly();
         createQreader();
-    }
-
-    public void onGuestSearchByName(){
-        String search = etSearch.getText().toString();
-        if (search.length() < 1)
-            return;
-
-        Guest guest = db.getGuestByName(search);
-
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-
-        if (guest != null){
-            etSearch.setText("");
-            imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
-            showDialog(guest);
-        }else {
-            //centered text on toast
-            Toast toast = Toast.makeText(this,"Usuário não encontrado\nBusque novamente por nome ou email", Toast.LENGTH_SHORT);
-            TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-            if( v != null) v.setGravity(Gravity.CENTER);
-            toast.show();
-        }
-    }
-
-    public void onGuestSearchByQrcode(String qrcode){
-        Guest guest = db.getGuestByQrcode(qrcode);
-
-        if (guest != null){
-            showDialog(guest);
-        }else{
-            isOpen = true;
-            Toast toast = Toast.makeText(this,"QRCode inválido, tente novamente", Toast.LENGTH_SHORT);
-            TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-            if( v != null) v.setGravity(Gravity.CENTER);
-            toast.show();
-
-            surfaceView.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    isOpen = false;
-                }
-            }, 3000);
-        }
     }
 
     private void createQreader() {
@@ -162,11 +111,22 @@ public class MainActivity extends AppCompatActivity {
         qrEader.init();
     }
 
-    private void showDialog(Guest guest) {
+    private void createGuestLog(Guest guest){
+        int logId = (int) System.currentTimeMillis();
+        int guestId = guest.getId();
+        String action = "checkin";
+        DateTime dateTime = new DateTime();
+
+        GuestLog guestLog = new GuestLog(logId, action, dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), guestId);
+
+        db.addGuestLog(guestLog);
+    }
+
+    private void showDialog(final Guest guest) {
         isOpen = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Confirmar presença?");
-        builder.setMessage(guest.getName()+"\n"+guest.getEmail()+"\n"+guest.getOccupation());
+        builder.setMessage(guest.getName() + "\n" + guest.getEmail() + "\n" + guest.getOccupation());
 
         String positiveText = "CONFIRMAR";
         builder.setPositiveButton(positiveText,
@@ -174,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         System.out.println("CONFIRMAR");
+                        createGuestLog(guest);
                     }
                 });
 
@@ -201,55 +162,57 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void getGuestApi(){
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
-        System.out.println("CALLLLLING API FUNCTION ______________ " + dateFormat.format(date));
-        //get
-        Fuel.get("http://demo6882708.mockable.io/guests").responseString(new Handler<String>() {
-            @Override
-            public void failure(Request request, Response response, FuelError error) {
-                //do something when it is failure
-                System.out.println("Fail" + error);
-            }
+    public void onGuestSearchByName() {
+        String search = etSearch.getText().toString();
+        if (search.length() < 1)
+            return;
 
-            @Override
-            public void success(Request request, Response response, String data) {
-                //do something when it is successful
-                JSONArray results;
-                ArrayList<Guest> guestArray = new ArrayList<Guest>();
+        Guest guest = db.getGuestByName(search);
 
-                try{
-                    results = new JSONArray(data);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-                    for (int i=0; i<results.length(); i++){
-                        Guest guest = new Guest();
-                        JSONObject jsonObj;
-                        jsonObj = results.getJSONObject(i);
+        if (guest != null) {
+            etSearch.setText("");
+            imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
+            showDialog(guest);
+        } else {
+            //centered text on toast
+            toast = Toast.makeText(this, "Usuário não encontrado\nBusque novamente por nome ou email", Toast.LENGTH_SHORT);
+            TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+            if (v != null) v.setGravity(Gravity.CENTER);
+            toast.show();
+        }
+    }
 
-                        guest.setId(jsonObj.getInt("id"));
-                        guest.setName(jsonObj.getString("name"));
-                        guest.setEmail(jsonObj.getString("email"));
-                        guest.setQrCode(jsonObj.getString("qrcode"));
-                        guest.setOccupation(jsonObj.getString("occupation"));
-                        guest.setUpdatedAt(jsonObj.getString("updated_at"));
+    public void onGuestSearchByQrcode(String qrcode) {
+        Guest guest = db.getGuestByQrcode(qrcode);
 
-                        guestArray.add(guest);
-                    }
+        if (guest != null) {
+            showDialog(guest);
+        } else {
+            isOpen = true;
+            toast = Toast.makeText(this, "QRCode inválido, tente novamente", Toast.LENGTH_SHORT);
+            TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+            if (v != null) v.setGravity(Gravity.CENTER);
+            toast.show();
 
-                    db.addOrUpdateGuests(guestArray);
-
-                    ArrayList<Guest> all = new ArrayList<>(db.getAllGuest());
-                    System.out.println(all);
-
-
-
-                }catch (JSONException e){
-                    Log.e("Error", "JsonArray error");
+            surfaceView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    isOpen = false;
                 }
+            }, 3000);
+        }
+    }
 
+    private void callAPIsHourly() {
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                api.getGuestApi();
             }
-        });
+        }, 0, 1, TimeUnit.HOURS);
     }
 
     @Override
@@ -268,6 +231,5 @@ public class MainActivity extends AppCompatActivity {
         qrEader.stop();
         qrEader.releaseAndCleanup();
     }
-
 
 }
