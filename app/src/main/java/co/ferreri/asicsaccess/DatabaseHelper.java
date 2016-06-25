@@ -5,13 +5,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Information
-    static final String DB_NAME = "ASICS.TEST2";
+    static final String DB_NAME = "ASICS.TEST0";
 
     // database version
     static final int DB_VERSION = 1;
@@ -22,7 +25,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Table columns
     public static final String ID = "id";
-    public static final String NAME = "nome";
+    public static final String NAME = "name";
+    public static final String NAME_CLEAN = "name_clean";
     public static final String EMAIL = "email";
     public static final String QRCODE = "qrcode";
     public static final String OCCUPATION = "occupation";
@@ -37,6 +41,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + TABLE_GUESTS + "("
             + ID + " INTEGER PRIMARY KEY, "
             + NAME + " TEXT NOT NULL, "
+            + NAME_CLEAN + " TEXT NOT NULL, "
             + EMAIL + " TEXT, "
             + QRCODE + " TEXT, "
             + OCCUPATION + " TEXT, "
@@ -74,7 +79,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 TABLE_GUESTS,
                 new String[]{ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT},
-                NAME + " LIKE ? OR " + EMAIL + " LIKE ? ",
+                NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ",
                 new String[]{str + "%", str + "%"},
                 null, null, null, null
         );
@@ -110,7 +115,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return guest;
     }
 
-    public String getLastUpdated() {
+    public String getLastUpdatedDate() {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(
@@ -121,10 +126,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 null, null, null, null
         );
 
+        String lastUpdated = new DateTime().withYear(2000).toString();
+        int i = cursor.getCount();
 
-        cursor.moveToFirst();
-
-        String lastUpdated = cursor.getString(0);
+        if (cursor.moveToFirst() && cursor.getString(0)!=null)
+            lastUpdated = cursor.getString(0);
+//        else
+//            lastUpdated = new DateTime(Long.MIN_VALUE).toString();
 
         cursor.close();
 
@@ -140,29 +148,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             for (Guest guest : guestList) {
                 values.put(ID, guest.getId());
                 values.put(NAME, guest.getName());
+                values.put(NAME_CLEAN, Utils.removeSpecialCharacters(guest.getName()));
                 values.put(EMAIL, guest.getEmail());
                 values.put(QRCODE, guest.getQrCode());
                 values.put(OCCUPATION, guest.getOccupation());
                 values.put(UPDATED_AT, guest.getUpdatedAt());
                 db.insertWithOnConflict(TABLE_GUESTS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-            }
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
-        }
-    }
-
-    public void addOrUpdateGuestLogs(ArrayList<GuestLog> guestLogList) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.beginTransaction();
-        try {
-            ContentValues values = new ContentValues();
-            for (GuestLog guestLog : guestLogList) {
-                values.put(ID, guestLog.getId());
-                values.put(ACTION, guestLog.getAction());
-                values.put(CREATED_AT, guestLog.getCreatedAt());
-                values.put(GUEST_ID, guestLog.getGuestId());
-                db.insertWithOnConflict(TABLE_LOGS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
             }
             db.setTransactionSuccessful();
         } finally {
@@ -181,6 +172,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         long newRowId = db.insert(TABLE_LOGS, null, values);
 
+    }
+
+    public ArrayList<GuestLog> getAllGuestLogSince(String date) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<GuestLog> guestLogList = null;
+        try {
+            guestLogList = new ArrayList<>();
+            String QUERY = "SELECT * FROM " + TABLE_LOGS ;
+            Cursor cursor = db.rawQuery(QUERY, null);
+            if (!cursor.isLast()) {
+                while (cursor.moveToNext()) {
+                    GuestLog guestLog = cursorToGuestLog(cursor);
+                    guestLogList.add(guestLog);
+                }
+            }
+            db.close();
+        } catch (Exception e) {
+            Log.e("error", e + "");
+        }
+        return guestLogList;
     }
 
     private Guest cursorToGuest(Cursor cursor) {
@@ -202,25 +213,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Integer.parseInt(cursor.getString(1))
         );
     }
-
-
-//    public ArrayList<Guest> getAllGuest() {
-//        SQLiteDatabase db = this.getReadableDatabase();
-//        ArrayList<Guest> guestList = null;
-//        try {
-//            guestList = new ArrayList<Guest>();
-//            String QUERY = "SELECT * FROM " + TABLE_GUESTS;
-//            Cursor cursor = db.rawQuery(QUERY, null);
-//            if (!cursor.isLast()) {
-//                while (cursor.moveToNext()) {
-//                    Guest guest = cursorToGuest(cursor);
-//                    guestList.add(guest);
-//                }
-//            }
-//            db.close();
-//        } catch (Exception e) {
-//            Log.e("error", e + "");
-//        }
-//        return guestList;
-//    }
 }

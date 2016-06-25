@@ -1,50 +1,116 @@
 package co.ferreri.asicsaccess;
 
-public class GuestLog {
-    private int id;
-    private String action;
-    private String createdAt;
-    private int guestId;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
+public class GuestLog {
+
+    @SerializedName("id")
+    @Expose
+    private Integer id;
+    @SerializedName("action")
+    @Expose
+    private String action;
+    @SerializedName("created_at")
+    @Expose
+    private String createdAt;
+    @SerializedName("guest_id")
+    @Expose
+    private Integer guestId;
+
+    /**
+     * No args constructor for use in serialization
+     */
     public GuestLog() {
     }
 
-    public GuestLog(int id, String action, String createdAt, int guestId) {
+    /**
+     * @param id
+     * @param createdAt
+     * @param action
+     * @param guestId
+     */
+    public GuestLog(Integer id, String action, String createdAt, Integer guestId) {
         this.id = id;
         this.action = action;
         this.createdAt = createdAt;
         this.guestId = guestId;
     }
 
-    public int getId() {
+    /**
+     * @return The id
+     */
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    /**
+     * @param id The id
+     */
+    public void setId(Integer id) {
         this.id = id;
     }
 
+    /**
+     * @return The action
+     */
     public String getAction() {
         return action;
     }
 
+    /**
+     * @param action The action
+     */
     public void setAction(String action) {
         this.action = action;
     }
 
+    /**
+     * @return The createdAt
+     */
     public String getCreatedAt() {
         return createdAt;
     }
 
+    /**
+     * @param createdAt The created_at
+     */
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 
-    public int getGuestId() {
+    /**
+     * @return The guestId
+     */
+    public Integer getGuestId() {
         return guestId;
     }
 
-    public void setGuestId(int guestId) {
+    /**
+     * @param guestId The guest_id
+     */
+    public void setGuestId(Integer guestId) {
         this.guestId = guestId;
     }
+
+}
+
+class LastUpdated {
+
+    @SerializedName("updated_since")
+    @Expose
+    private String updatedSince;
+
+    public LastUpdated() {
+    }
+
+    /**
+     *
+     * @param updatedSince
+     */
+    public LastUpdated(String updatedSince) {
+        this.updatedSince = updatedSince;
+    }
+
+
 }

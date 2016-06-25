@@ -19,11 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalTime;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -33,14 +29,14 @@ import github.nisrulz.qreader.QREader;
 
 
 public class MainActivity extends AppCompatActivity {
-    SurfaceView surfaceView;
-    EditText etSearch;
-    ImageView btnSearch;
-    QREader qrEader;
-    Toast toast;
+    private SurfaceView surfaceView;
+    private EditText etSearch;
+    private ImageView btnSearch;
+    private QREader qrEader;
+    private Toast toast;
 
-    DatabaseHelper db = new DatabaseHelper(this);
-    APIHelper api = new APIHelper(this);
+    private DatabaseHelper db = new DatabaseHelper(this);
+    private APIHelper2 api = new APIHelper2(this);
 
     private boolean isOpen = false;
 
@@ -206,11 +202,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void callAPIsHourly() {
+
         ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
         ses.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                api.getGuestApi();
+                DateTime dateTime = new DateTime();
+                System.out.println("CALLING API HOURLY ***************** "+dateTime);
+
+                api.loadAllGuestsSince();
+
+                api.sendGuestLogsApi();
+
             }
         }, 0, 1, TimeUnit.HOURS);
     }
