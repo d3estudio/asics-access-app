@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Information
-    static final String DB_NAME = "ASICS.TEST0";
+    static final String DB_NAME = "ASICS.TEST3";
 
     // database version
     static final int DB_VERSION = 1;
@@ -28,11 +28,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String NAME = "name";
     public static final String NAME_CLEAN = "name_clean";
     public static final String EMAIL = "email";
-    public static final String QRCODE = "qrcode";
+    public static final String QR_CODE = "qr_code";
     public static final String OCCUPATION = "occupation";
     public static final String UPDATED_AT = "updated_at";
 
-    public static final String GUEST_ID = "guestId";
+    public static final String GUEST_ID = "guest_id";
     public static final String ACTION = "action";
     public static final String CREATED_AT = "created_at";
 
@@ -43,18 +43,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + NAME + " TEXT NOT NULL, "
             + NAME_CLEAN + " TEXT NOT NULL, "
             + EMAIL + " TEXT, "
-            + QRCODE + " TEXT, "
+            + QR_CODE + " TEXT, "
             + OCCUPATION + " TEXT, "
             + UPDATED_AT + " DATETIME);";
 
     // Creating log table query
     private static final String CREATE_TABLE_LOGS = "create table "
             + TABLE_LOGS + "("
-            + ID + " INTEGER PRIMARY KEY, "
+            + ID + " STRING PRIMARY KEY, "
             + ACTION + " TEXT, "
             + CREATED_AT + " DATETIME,"
-            + GUEST_ID + " INTEGER, "
-            + " FOREIGN KEY (" + GUEST_ID + ") REFERENCES " + TABLE_GUESTS + "(" + ID + "));";
+            + GUEST_ID + " INTEGER);";
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -78,7 +77,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         Cursor cursor = db.query(
                 TABLE_GUESTS,
-                new String[]{ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT},
+                new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT},
                 NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ",
                 new String[]{str + "%", str + "%"},
                 null, null, null, null
@@ -99,8 +98,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         Cursor cursor = db.query(
                 TABLE_GUESTS,
-                new String[]{ID, NAME, EMAIL, QRCODE, OCCUPATION, UPDATED_AT},
-                QRCODE + "=?",
+                new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT},
+                QR_CODE + "=?",
                 new String[]{str},
                 null, null, null, null
         );
@@ -126,13 +125,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 null, null, null, null
         );
 
-        String lastUpdated = new DateTime().withYear(2000).toString();
-        int i = cursor.getCount();
+        String lastUpdated = new DateTime().withYear(2000).toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-        if (cursor.moveToFirst() && cursor.getString(0)!=null)
+        if (cursor.moveToFirst() && cursor.getString(0) != null)
             lastUpdated = cursor.getString(0);
-//        else
-//            lastUpdated = new DateTime(Long.MIN_VALUE).toString();
 
         cursor.close();
 
@@ -150,7 +146,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values.put(NAME, guest.getName());
                 values.put(NAME_CLEAN, Utils.removeSpecialCharacters(guest.getName()));
                 values.put(EMAIL, guest.getEmail());
-                values.put(QRCODE, guest.getQrCode());
+                values.put(QR_CODE, guest.getQrCode());
                 values.put(OCCUPATION, guest.getOccupation());
                 values.put(UPDATED_AT, guest.getUpdatedAt());
                 db.insertWithOnConflict(TABLE_GUESTS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
@@ -164,34 +160,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void addGuestLog(GuestLog guestLog) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values = new ContentValues();
-        values.put(ID, guestLog.getId());
-        values.put(ACTION, guestLog.getAction());
-        values.put(CREATED_AT, guestLog.getCreatedAt());
-        values.put(GUEST_ID, guestLog.getGuestId());
+        try {
+            ContentValues values = new ContentValues();
+            values.put(ID, guestLog.getId());
+            values.put(ACTION, guestLog.getAction());
+            values.put(CREATED_AT, guestLog.getCreatedAt());
+            values.put(GUEST_ID, guestLog.getGuestId());
 
-        long newRowId = db.insert(TABLE_LOGS, null, values);
-
+            db.insertWithOnConflict(TABLE_LOGS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        }catch (Exception e){
+            Log.e("DB", "INSERT GEUST LOG ERROR "+e);
+        }
     }
 
-    public ArrayList<GuestLog> getAllGuestLogSince(String date) {
+    public ArrayList<GuestLog> getAllGuestLogsSince(String lastSent) {
         SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<GuestLog> guestLogList = null;
+        ArrayList<GuestLog> guestList = null;
         try {
-            guestLogList = new ArrayList<>();
-            String QUERY = "SELECT * FROM " + TABLE_LOGS ;
+            guestList = new ArrayList<>();
+            String QUERY = "SELECT * FROM " + TABLE_LOGS + " WHERE "+CREATED_AT+" >= '"+lastSent+"'";
             Cursor cursor = db.rawQuery(QUERY, null);
             if (!cursor.isLast()) {
                 while (cursor.moveToNext()) {
-                    GuestLog guestLog = cursorToGuestLog(cursor);
-                    guestLogList.add(guestLog);
+                    GuestLog guest = cursorToGuestLog(cursor);
+                    guestList.add(guest);
                 }
             }
             db.close();
         } catch (Exception e) {
-            Log.e("error", e + "");
+            Log.e("DB", "GET ALL GUESTS LOGS ERROR "+e);
         }
-        return guestLogList;
+        return guestList;
     }
 
     private Guest cursorToGuest(Cursor cursor) {
@@ -207,10 +206,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private GuestLog cursorToGuestLog(Cursor cursor) {
         return new GuestLog(
-                Integer.parseInt(cursor.getString(0)),
+                cursor.getString(0),
+                cursor.getString(1),
                 cursor.getString(2),
-                cursor.getString(3),
-                Integer.parseInt(cursor.getString(1))
+                Integer.parseInt(cursor.getString(3))
         );
     }
 }

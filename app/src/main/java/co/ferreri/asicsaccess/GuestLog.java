@@ -7,7 +7,7 @@ public class GuestLog {
 
     @SerializedName("id")
     @Expose
-    private Integer id;
+    private String id;
     @SerializedName("action")
     @Expose
     private String action;
@@ -16,13 +16,8 @@ public class GuestLog {
     private String createdAt;
     @SerializedName("guest_id")
     @Expose
-    private Integer guestId;
+    private int guestId;
 
-    /**
-     * No args constructor for use in serialization
-     */
-    public GuestLog() {
-    }
 
     /**
      * @param id
@@ -30,7 +25,7 @@ public class GuestLog {
      * @param action
      * @param guestId
      */
-    public GuestLog(Integer id, String action, String createdAt, Integer guestId) {
+    public GuestLog(String id, String action, String createdAt, int guestId) {
         this.id = id;
         this.action = action;
         this.createdAt = createdAt;
@@ -40,14 +35,14 @@ public class GuestLog {
     /**
      * @return The id
      */
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
     /**
      * @param id The id
      */
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -82,35 +77,15 @@ public class GuestLog {
     /**
      * @return The guestId
      */
-    public Integer getGuestId() {
+    public int getGuestId() {
         return guestId;
     }
 
     /**
      * @param guestId The guest_id
      */
-    public void setGuestId(Integer guestId) {
+    public void setGuestId(int guestId) {
         this.guestId = guestId;
     }
-
-}
-
-class LastUpdated {
-
-    @SerializedName("updated_since")
-    @Expose
-    private String updatedSince;
-
-    public LastUpdated() {
-    }
-
-    /**
-     *
-     * @param updatedSince
-     */
-    public LastUpdated(String updatedSince) {
-        this.updatedSince = updatedSince;
-    }
-
 
 }

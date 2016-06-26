@@ -25,12 +25,6 @@ public class Guest {
     private String updatedAt;
 
     /**
-     * No args constructor for use in serialization
-     */
-    public Guest() {
-    }
-
-    /**
      * @param updatedAt
      * @param id
      * @param occupation

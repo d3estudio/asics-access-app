@@ -13,5 +13,5 @@ public interface APIService {
     Call<ArrayList<Guest>> loadAllGuestsSince(@Body LastUpdated lastUpdatedAt);
 
     @POST("logs/log")
-    Call<Void> sendLogs(@Body ArrayList<GuestLog> arrayList);
+    Call<Void> sendLogs(@Body LogList logs);
 }

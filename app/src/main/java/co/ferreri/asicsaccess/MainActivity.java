@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import org.joda.time.DateTime;
 
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private Toast toast;
 
     private DatabaseHelper db = new DatabaseHelper(this);
-    private APIHelper2 api = new APIHelper2(this);
+    private APIHelper api = new APIHelper(this);
 
     private boolean isOpen = false;
 
@@ -108,12 +109,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createGuestLog(Guest guest){
-        int logId = (int) System.currentTimeMillis();
+        String logId = UUID.randomUUID().toString();
         int guestId = guest.getId();
         String action = "checkin";
-        DateTime dateTime = new DateTime();
+        String dateTime = new DateTime().toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-        GuestLog guestLog = new GuestLog(logId, action, dateTime.toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), guestId);
+        GuestLog guestLog = new GuestLog(logId, action, dateTime, guestId);
 
         db.addGuestLog(guestLog);
     }
