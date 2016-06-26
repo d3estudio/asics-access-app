@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Information
-    static final String DB_NAME = "ASICS.TEST3";
+    static final String DB_NAME = "ASICS.TEST0";
 
     // database version
     static final int DB_VERSION = 1;
@@ -125,7 +125,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 null, null, null, null
         );
 
-        String lastUpdated = new DateTime().withYear(2000).toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String lastUpdated = Utils.getOldFormatedDate();
 
         if (cursor.moveToFirst() && cursor.getString(0) != null)
             lastUpdated = cursor.getString(0);
@@ -173,11 +173,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public boolean findGuestInLogs(int guestId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_LOGS,
+                new String[]{ID, GUEST_ID},
+                GUEST_ID + "=?",
+                new String[]{Integer.toString(guestId)},
+                null, null, null, null
+        );
+
+
+        boolean hasLog = false;
+
+        if (cursor.moveToFirst())
+            hasLog = true;
+
+
+        return hasLog;
+    }
+
     public ArrayList<GuestLog> getAllGuestLogsSince(String lastSent) {
         SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<GuestLog> guestList = null;
+        ArrayList<GuestLog> guestList = new ArrayList<>();
         try {
-            guestList = new ArrayList<>();
             String QUERY = "SELECT * FROM " + TABLE_LOGS + " WHERE "+CREATED_AT+" >= '"+lastSent+"'";
             Cursor cursor = db.rawQuery(QUERY, null);
             if (!cursor.isLast()) {

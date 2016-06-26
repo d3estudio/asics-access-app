@@ -24,6 +24,9 @@ public class Guest {
     @Expose
     private String updatedAt;
 
+    public Guest() {
+    }
+
     /**
      * @param updatedAt
      * @param id

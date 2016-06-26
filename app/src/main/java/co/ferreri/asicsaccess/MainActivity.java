@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showDialog(final Guest guest) {
         isOpen = true;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Confirmar presença?");
         builder.setMessage(guest.getName() + "\n" + guest.getEmail() + "\n" + guest.getOccupation());

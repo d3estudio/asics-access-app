@@ -4,13 +4,11 @@ import android.content.Context;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import org.joda.time.DateTime;
-
-
 import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -56,16 +54,12 @@ public class APIHelper {
 
     public void sendGuestLogsApi() {
 
-        final String date = new DateTime().toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        final String date = Utils.getCurrentFormatedDate();
 
-        String lastSent = PreferenceManager.getDefaultSharedPreferences(context).getString(LAST_SENT_KEY, "empty");
-
-        if (lastSent.equals("empty"))
-            lastSent = new DateTime().withYear(2000).toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String lastSent = PreferenceManager.getDefaultSharedPreferences(context).getString(LAST_SENT_KEY, Utils.getOldFormatedDate());
 
         ArrayList<GuestLog> list = db.getAllGuestLogsSince(lastSent);
         LogList logs = new LogList(list);
-
 
         if (!list.isEmpty())
             apiService.sendLogs(logs).enqueue(new Callback<Void>() {
@@ -85,8 +79,23 @@ public class APIHelper {
                 }
             });
         else
-            Log.i("API","LOG LIST IS EMPTY "+list.size());
+            Log.e("API","LOG LIST IS EMPTY "+list.size());
 
+    }
+
+    public void findGuestLogApi(){
+        Guest guest = new Guest();
+        apiService.findGuestLog(guest).enqueue(new Callback<Guest>() {
+            @Override
+            public void onResponse(Call<Guest> call, Response<Guest> response) {
+                Log.e("API","FIND GUESTS LOGS SUCCESS "+response.body());
+            }
+
+            @Override
+            public void onFailure(Call<Guest> call, Throwable t) {
+                Log.e("API","FIND GUEST LOG FAILURE "+t.getLocalizedMessage());
+            }
+        });
     }
 
 }
