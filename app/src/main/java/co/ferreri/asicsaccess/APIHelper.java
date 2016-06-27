@@ -85,7 +85,7 @@ public class APIHelper {
 
     public void findGuestLogApi(){
         Guest guest = new Guest();
-        apiService.findGuestLog(guest).enqueue(new Callback<Guest>() {
+        apiService.loadAllGuestLogs(guest).enqueue(new Callback<Guest>() {
             @Override
             public void onResponse(Call<Guest> call, Response<Guest> response) {
                 Log.e("API","FIND GUESTS LOGS SUCCESS "+response.body());

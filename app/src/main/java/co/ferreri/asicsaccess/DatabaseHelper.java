@@ -169,7 +169,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             db.insertWithOnConflict(TABLE_LOGS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         }catch (Exception e){
-            Log.e("DB", "INSERT GEUST LOG ERROR "+e);
+            Log.e("DB", "INSERT GUEST LOG ERROR "+e);
         }
     }
 

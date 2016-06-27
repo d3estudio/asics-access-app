@@ -1,5 +1,8 @@
 package co.ferreri.asicsaccess;
 
+import android.content.Context;
+import android.telephony.TelephonyManager;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -26,6 +29,19 @@ class LogList {
 
     public LogList(ArrayList<GuestLog> logs) {
         this.logs = logs;
+    }
+
+}
+
+class AccessToken {
+
+    @SerializedName("access_token")
+    @Expose
+    private String access_token;
+
+    public AccessToken(Context context) {
+        TelephonyManager mngr = (TelephonyManager) context.getSystemService(context.TELEPHONY_SERVICE);
+        this.access_token = mngr.getDeviceId();
     }
 
 }
