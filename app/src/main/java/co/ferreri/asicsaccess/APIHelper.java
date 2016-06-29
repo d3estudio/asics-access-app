@@ -1,7 +1,6 @@
 package co.ferreri.asicsaccess;
 
 import android.content.Context;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -14,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class APIHelper {
     private static String LAST_SENT_KEY = "LAST_SENT_KEY";
-    private static String BASE_URL = "http://10.0.0.105:8080";
+    private static String BASE_URL = "http://10.0.1.59:8080";
     private static String API_URL = BASE_URL + "/api/gateway/";
 
     private DatabaseHelper db;
@@ -26,6 +25,8 @@ public class APIHelper {
     public APIHelper(Context context) {
         this.context = context;
 
+        this.db = new DatabaseHelper(context);
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(API_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -33,21 +34,57 @@ public class APIHelper {
 
         this.apiService = retrofit.create(APIService.class);
 
-        db = new DatabaseHelper(context);
     }
 
     public void loadAllGuestsSince() {
-        LastUpdated lastUpdated = new LastUpdated(db.getLastUpdatedDate());
+        LastUpdated lastUpdated = new LastUpdated(Utils.getCellPhoneId(context), db.getLastUpdatedGuest());
         apiService.loadAllGuestsSince(lastUpdated).enqueue(new Callback<ArrayList<Guest>>() {
             @Override
             public void onResponse(Call<ArrayList<Guest>> call, retrofit2.Response<ArrayList<Guest>> response) {
+                Log.e("API", "LOAD ALL GUESTS SUCCESS " + response.raw());
                 if (response.body() != null)
                     db.addOrUpdateGuests(response.body());
             }
 
             @Override
             public void onFailure(Call<ArrayList<Guest>> call, Throwable t) {
-                Log.e("API","LOAD ALL GUESTS FAILURE "+t.getLocalizedMessage());
+                Log.e("API", "LOAD ALL GUESTS FAILURE " + t.getLocalizedMessage());
+            }
+        });
+    }
+
+    public void loadAllGuestLogsSince() {
+        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), db.getLastLogOther());
+        apiService.loadAllGuestLogsSince(lastCreated).enqueue(new Callback<ArrayList<GuestLog>>() {
+            @Override
+            public void onResponse(Call<ArrayList<GuestLog>> call, Response<ArrayList<GuestLog>> response) {
+                Log.e("API", "SEND ALL GUESTS LOGS SINCE SUCCESS " + response.raw());
+                if (response.body() != null) {
+                    db.addOrUpdateGuestLogs(response.body());
+                    Utils.storePreferenceDate(context, LAST_SENT_KEY, Utils.getCurrentFormatedDate()        );
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<GuestLog>> call, Throwable t) {
+                Log.e("API", "SEND ALL GUESTS LOGS SINCE FAILURE " + t.getLocalizedMessage());
+            }
+        });
+    }
+
+    public void loadOtherGuestLogs() {
+        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), db.getLastLogOther());
+        apiService.loadOtherGuestLogs(lastCreated).enqueue(new Callback<ArrayList<GuestLog>>() {
+            @Override
+            public void onResponse(Call<ArrayList<GuestLog>> call, Response<ArrayList<GuestLog>> response) {
+                Log.e("API", "SEND OTHER GUESTS LOGS SUCCESS " + response.raw());
+                if (response.body() != null)
+                    db.addOrUpdateGuestLogs(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<GuestLog>> call, Throwable t) {
+                Log.e("API", "SEND OTHER GUESTS LOGS FAILURE " + t.getLocalizedMessage());
             }
         });
     }
@@ -56,46 +93,32 @@ public class APIHelper {
 
         final String date = Utils.getCurrentFormatedDate();
 
-        String lastSent = PreferenceManager.getDefaultSharedPreferences(context).getString(LAST_SENT_KEY, Utils.getOldFormatedDate());
+        String lastSent = Utils.getStoredDate(context, LAST_SENT_KEY);
 
         ArrayList<GuestLog> list = db.getAllGuestLogsSince(lastSent);
-        LogList logs = new LogList(list);
+        LogList logs = new LogList(Utils.getCellPhoneId(context), list);
+
 
         if (!list.isEmpty())
             apiService.sendLogs(logs).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, retrofit2.Response<Void> response) {
                     response.code();
-                    if (response.code() == 200)
-                        PreferenceManager.getDefaultSharedPreferences(context)
-                                .edit()
-                                .putString(LAST_SENT_KEY, date)
-                                .commit();
+                    Log.e("API", "SEND ALL GUESTS LOGS SUCCESS " + response.raw());
+                    if (response.code() == 200) {
+                        Utils.storePreferenceDate(context, LAST_SENT_KEY, date);
+                    }
+
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    Log.e("API","SEND ALL GUESTS LOGS FAILURE "+t.getLocalizedMessage());
+                    Log.e("API", "SEND ALL GUESTS LOGS FAILURE " + t.getLocalizedMessage());
                 }
             });
         else
-            Log.e("API","LOG LIST IS EMPTY "+list.size());
+            Log.e("API", "LOG LIST IS EMPTY " + list.size());
 
-    }
-
-    public void findGuestLogApi(){
-        Guest guest = new Guest();
-        apiService.loadAllGuestLogs(guest).enqueue(new Callback<Guest>() {
-            @Override
-            public void onResponse(Call<Guest> call, Response<Guest> response) {
-                Log.e("API","FIND GUESTS LOGS SUCCESS "+response.body());
-            }
-
-            @Override
-            public void onFailure(Call<Guest> call, Throwable t) {
-                Log.e("API","FIND GUEST LOG FAILURE "+t.getLocalizedMessage());
-            }
-        });
     }
 
 }

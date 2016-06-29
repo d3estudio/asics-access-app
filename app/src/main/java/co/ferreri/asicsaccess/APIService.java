@@ -10,11 +10,14 @@ import retrofit2.http.POST;
 public interface APIService {
 
     @POST("guests/since")
-    Call<ArrayList<Guest>> loadAllGuestsSince(@Body LastUpdated lastUpdatedAt, AccessToken token);
+    Call<ArrayList<Guest>> loadAllGuestsSince(@Body LastUpdated lastUpdatedAt);
 
-    @POST("logs/find")
-    Call<ArrayList<GuestLog>> loadAllGuestLogs(@Body Guest guest, AccessToken token);
+    @POST("logs/since")
+    Call<ArrayList<GuestLog>> loadAllGuestLogsSince(@Body LastCreated lastCreated);
+
+    @POST("logs/other")
+    Call<ArrayList<GuestLog>> loadOtherGuestLogs(@Body LastCreated lastCreated);
 
     @POST("logs/log")
-    Call<Void> sendLogs(@Body LogList logs, AccessToken token);
+    Call<Void> sendLogs(@Body LogList logs);
 }

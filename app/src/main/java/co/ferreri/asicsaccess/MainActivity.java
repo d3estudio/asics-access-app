@@ -108,13 +108,12 @@ public class MainActivity extends AppCompatActivity {
         qrEader.init();
     }
 
-    private void createGuestLog(Guest guest){
+    private void createGuestLog(Guest guest) {
         String logId = UUID.randomUUID().toString();
         int guestId = guest.getId();
-        String action = "checkin";
         String dateTime = new DateTime().toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-        GuestLog guestLog = new GuestLog(logId, action, dateTime, guestId);
+        GuestLog guestLog = new GuestLog(logId, dateTime, guestId, Utils.getCellPhoneId(this));
 
         db.addGuestLog(guestLog);
     }
@@ -122,9 +121,15 @@ public class MainActivity extends AppCompatActivity {
     private void showDialog(final Guest guest) {
         isOpen = true;
 
+        String warning = db.findGuestInLogs(guest.getId()) ? "Convidado já realizou checkin" : "";
+
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Confirmar presença?");
-        builder.setMessage(guest.getName() + "\n" + guest.getEmail() + "\n" + guest.getOccupation());
+        builder.setMessage(guest.getName() + "\n" +
+                guest.getEmail() + "\n" +
+                guest.getOccupation() + "\n\n" +
+                warning
+        );
 
         String positiveText = "CONFIRMAR";
         builder.setPositiveButton(positiveText,
@@ -169,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        if (guest != null) {
+        if (guest != null && guest.getRemovedAt() == null) {
             etSearch.setText("");
             imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
             showDialog(guest);
@@ -185,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
     public void onGuestSearchByQrcode(String qrcode) {
         Guest guest = db.getGuestByQrcode(qrcode);
 
-        if (guest != null) {
+        if (guest != null && guest.getRemovedAt() == null) {
             showDialog(guest);
         } else {
             isOpen = true;
@@ -203,6 +208,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void callAPIs() {
+        api.loadAllGuestsSince();
+
+        if (Utils.getIsInitial(this)) {
+            api.loadAllGuestLogsSince();
+            Utils.storeIsInitial(this);
+        } else {
+            api.sendGuestLogsApi();
+
+            api.loadOtherGuestLogs();
+        }
+    }
+
     private void callAPIsHourly() {
 
         ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
@@ -210,11 +228,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 DateTime dateTime = new DateTime();
-                System.out.println("CALLING API HOURLY ***************** "+dateTime);
+                System.out.println("CALLING API HOURLY ***************** " + dateTime);
 
-                api.loadAllGuestsSince();
 
-                api.sendGuestLogsApi();
+                callAPIs();
 
             }
         }, 0, 1, TimeUnit.HOURS);
@@ -231,6 +248,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        Log.d("MainActivity", "DESTROY");
+        callAPIs();
 
         // Call in onDestroy
         qrEader.stop();

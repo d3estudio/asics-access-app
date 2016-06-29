@@ -8,28 +8,27 @@ public class GuestLog {
     @SerializedName("id")
     @Expose
     private String id;
-    @SerializedName("action")
-    @Expose
-    private String action;
     @SerializedName("created_at")
     @Expose
     private String createdAt;
     @SerializedName("guest_id")
     @Expose
     private int guestId;
+    @SerializedName("access_token")
+    @Expose
+    private String accessToken;
 
 
     /**
      * @param id
      * @param createdAt
-     * @param action
      * @param guestId
      */
-    public GuestLog(String id, String action, String createdAt, int guestId) {
+    public GuestLog(String id, String createdAt, int guestId, String accessToken) {
         this.id = id;
-        this.action = action;
         this.createdAt = createdAt;
         this.guestId = guestId;
+        this.accessToken = accessToken;
     }
 
     /**
@@ -44,20 +43,6 @@ public class GuestLog {
      */
     public void setId(String id) {
         this.id = id;
-    }
-
-    /**
-     * @return The action
-     */
-    public String getAction() {
-        return action;
-    }
-
-    /**
-     * @param action The action
-     */
-    public void setAction(String action) {
-        this.action = action;
     }
 
     /**
@@ -86,6 +71,20 @@ public class GuestLog {
      */
     public void setGuestId(int guestId) {
         this.guestId = guestId;
+    }
+
+    /**
+     * @return The access_token
+     */
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    /**
+     * @param accessToken The created_at
+     */
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
 }
