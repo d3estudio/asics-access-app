@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
     private void showDialog(final Guest guest) {
         isOpen = true;
 
-        String warning = db.findGuestInLogs(guest.getId()) ? "Convidado já realizou checkin" : "";
+        String warning = db.checkIfGuestHasLog(guest.getId()) ? "Convidado já realizou checkin" : "";
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Confirmar presença?");
@@ -213,11 +213,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (Utils.getIsInitial(this)) {
             api.loadAllGuestLogsSince();
-            Utils.storeIsInitial(this);
         } else {
-            api.sendGuestLogsApi();
+            api.sendLocalGuestLogs();
 
-            api.loadOtherGuestLogs();
+            api.loadAllOtherGuestLogs();
         }
     }
 
@@ -229,7 +228,6 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 DateTime dateTime = new DateTime();
                 System.out.println("CALLING API HOURLY ***************** " + dateTime);
-
 
                 callAPIs();
 
@@ -249,9 +247,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        Log.d("MainActivity", "DESTROY");
         callAPIs();
-
+        Log.e("MainActivity", "DESTROY");
         // Call in onDestroy
         qrEader.stop();
         qrEader.releaseAndCleanup();

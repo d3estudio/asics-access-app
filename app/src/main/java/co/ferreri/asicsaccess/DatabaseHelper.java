@@ -81,7 +81,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 TABLE_GUESTS,
                 new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
-                REMOVED_AT+" IS NULL AND "+NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ",
+                NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ",
                 new String[]{str + "%", str + "%"},
                 null, null, null, null
         );
@@ -102,7 +102,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 TABLE_GUESTS,
                 new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT},
-                REMOVED_AT+" IS NULL AND " + QR_CODE + "=? ",
+                QR_CODE + "=? ",
                 new String[]{str},
                 null, null, null, null
         );
@@ -138,7 +138,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return lastUpdated;
     }
 
-
     public void addOrUpdateGuests(ArrayList<Guest> guestList) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
@@ -160,15 +159,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.endTransaction();
         }
     }
-
-//    public void deleteGuests() {
-//        SQLiteDatabase db = this.getWritableDatabase();
-//
-//        String table = TABLE_GUESTS;
-//        String whereClause = REMOVED_AT + " is not null";
-//        int i = db.delete(table, whereClause, null);
-//        Log.e("DB", "delete? " + i);
-//    }
 
     public void addGuestLog(GuestLog guestLog) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -204,18 +194,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public String getLastLogOther() {
+    public String getLastCreatedExternalLog() {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(
                 TABLE_LOGS,
                 new String[]{"max(" + CREATED_AT + ")"},
                 ACCESS_TOKEN + " <> ?",
-                new String[]{Utils.getCellPhoneId(context)}
-                , null, null, null, null
+                new String[]{Utils.getCellPhoneId(context)},
+                null, null, null, null
         );
 
-        String lastUpdated = Utils.getMidnightFormatedDate();
+        String lastUpdated = Utils.getOldFormattedDate();
 
         if (cursor.moveToFirst() && cursor.getString(0) != null)
             lastUpdated = cursor.getString(0);
@@ -225,7 +215,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return lastUpdated;
     }
 
-    public boolean findGuestInLogs(int guestId) {
+    public boolean checkIfGuestHasLog(int guestId) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(
@@ -235,7 +225,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{Integer.toString(guestId)},
                 null, null, null, null
         );
-
 
         boolean hasLog = false;
 
@@ -247,7 +236,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return hasLog;
     }
 
-    public ArrayList<GuestLog> getAllGuestLogsSince(String lastSent) {
+    public ArrayList<GuestLog> getAllLocalLogsSince(String lastSent) {
         SQLiteDatabase db = this.getReadableDatabase();
         ArrayList<GuestLog> guestList = new ArrayList<>();
         try {

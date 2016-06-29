@@ -41,7 +41,7 @@ public class APIHelper {
         apiService.loadAllGuestsSince(lastUpdated).enqueue(new Callback<ArrayList<Guest>>() {
             @Override
             public void onResponse(Call<ArrayList<Guest>> call, retrofit2.Response<ArrayList<Guest>> response) {
-                Log.e("API", "LOAD ALL GUESTS SUCCESS " + response.raw());
+                Log.e("API", "LOAD ALL GUESTS SUCCESS " + response.body());
                 if (response.body() != null)
                     db.addOrUpdateGuests(response.body());
             }
@@ -54,14 +54,15 @@ public class APIHelper {
     }
 
     public void loadAllGuestLogsSince() {
-        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), db.getLastLogOther());
+        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), db.getLastCreatedExternalLog());
         apiService.loadAllGuestLogsSince(lastCreated).enqueue(new Callback<ArrayList<GuestLog>>() {
             @Override
             public void onResponse(Call<ArrayList<GuestLog>> call, Response<ArrayList<GuestLog>> response) {
-                Log.e("API", "SEND ALL GUESTS LOGS SINCE SUCCESS " + response.raw());
+                Log.e("API", "SEND ALL GUESTS LOGS SINCE SUCCESS " + response.body());
                 if (response.body() != null) {
                     db.addOrUpdateGuestLogs(response.body());
-                    Utils.storePreferenceDate(context, LAST_SENT_KEY, Utils.getCurrentFormatedDate()        );
+                    Utils.storePreferenceDate(context, LAST_SENT_KEY, Utils.getCurrentFormatedDate());
+                    Utils.storeIsInitial(context);
                 }
             }
 
@@ -72,30 +73,30 @@ public class APIHelper {
         });
     }
 
-    public void loadOtherGuestLogs() {
-        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), db.getLastLogOther());
+    public void loadAllOtherGuestLogs() {
+        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), db.getLastCreatedExternalLog());
         apiService.loadOtherGuestLogs(lastCreated).enqueue(new Callback<ArrayList<GuestLog>>() {
             @Override
             public void onResponse(Call<ArrayList<GuestLog>> call, Response<ArrayList<GuestLog>> response) {
-                Log.e("API", "SEND OTHER GUESTS LOGS SUCCESS " + response.raw());
+                Log.e("API", "LOAD OTHER GUESTS LOGS SUCCESS " + response.body());
                 if (response.body() != null)
                     db.addOrUpdateGuestLogs(response.body());
             }
 
             @Override
             public void onFailure(Call<ArrayList<GuestLog>> call, Throwable t) {
-                Log.e("API", "SEND OTHER GUESTS LOGS FAILURE " + t.getLocalizedMessage());
+                Log.e("API", "LOAD OTHER GUESTS LOGS FAILURE " + t.getLocalizedMessage());
             }
         });
     }
 
-    public void sendGuestLogsApi() {
+    public void sendLocalGuestLogs() {
 
         final String date = Utils.getCurrentFormatedDate();
 
         String lastSent = Utils.getStoredDate(context, LAST_SENT_KEY);
 
-        ArrayList<GuestLog> list = db.getAllGuestLogsSince(lastSent);
+        ArrayList<GuestLog> list = db.getAllLocalLogsSince(lastSent);
         LogList logs = new LogList(Utils.getCellPhoneId(context), list);
 
 
