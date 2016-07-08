@@ -16,15 +16,15 @@ public class Utils {
     }
 
     public static String getOldFormattedDate() {
-        return new DateTime().withYear(2000).toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        return new DateTime().withYear(2000).toString();
     }
 
     public static String getCurrentFormatedDate() {
-        return new DateTime().toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        return new DateTime().toString();
     }
 
     public static String getMidnightFormatedDate() {
-        return new DateTime().withTimeAtStartOfDay().toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        return new DateTime().withTimeAtStartOfDay().toString();
     }
 
     public static String getCellPhoneId(Context context) {
@@ -33,7 +33,6 @@ public class Utils {
     }
 
     public static void storePreferenceDate(Context context, String key, String date) {
-
         PreferenceManager
                 .getDefaultSharedPreferences(context)
                 .edit()

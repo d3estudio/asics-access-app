@@ -58,7 +58,7 @@ public class APIHelper {
         apiService.loadAllGuestLogsSince(lastCreated).enqueue(new Callback<ArrayList<GuestLog>>() {
             @Override
             public void onResponse(Call<ArrayList<GuestLog>> call, Response<ArrayList<GuestLog>> response) {
-                Log.e("API", "SEND ALL GUESTS LOGS SINCE SUCCESS " + response.body());
+                Log.e("API", "LOAD ALL GUESTS LOGS SINCE SUCCESS " + response.body());
                 if (response.body() != null) {
                     db.addOrUpdateGuestLogs(response.body());
                     Utils.storePreferenceDate(context, LAST_SENT_KEY, Utils.getCurrentFormatedDate());
@@ -68,13 +68,13 @@ public class APIHelper {
 
             @Override
             public void onFailure(Call<ArrayList<GuestLog>> call, Throwable t) {
-                Log.e("API", "SEND ALL GUESTS LOGS SINCE FAILURE " + t.getLocalizedMessage());
+                Log.e("API", "LOAD ALL GUESTS LOGS SINCE FAILURE " + t.getLocalizedMessage());
             }
         });
     }
 
     public void loadAllOtherGuestLogs() {
-        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), db.getLastCreatedExternalLog());
+        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), Utils.getMidnightFormatedDate());
         apiService.loadOtherGuestLogs(lastCreated).enqueue(new Callback<ArrayList<GuestLog>>() {
             @Override
             public void onResponse(Call<ArrayList<GuestLog>> call, Response<ArrayList<GuestLog>> response) {
@@ -105,7 +105,7 @@ public class APIHelper {
                 @Override
                 public void onResponse(Call<Void> call, retrofit2.Response<Void> response) {
                     response.code();
-                    Log.e("API", "SEND ALL GUESTS LOGS SUCCESS " + response.raw());
+                    Log.e("API", "SEND ALL GUESTS LOGS SUCCESS " + response.body());
                     if (response.code() == 200) {
                         Utils.storePreferenceDate(context, LAST_SENT_KEY, date);
                     }

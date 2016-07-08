@@ -78,20 +78,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Guest getGuestByName(String str) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                TABLE_GUESTS,
-                new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
-                NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ",
-                new String[]{str + "%", str + "%"},
-                null, null, null, null
-        );
-
         Guest guest = null;
+        try {
+            Cursor cursor = db.query(
+                    TABLE_GUESTS,
+                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
+                    NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ",
+                    new String[]{str + "%", str + "%"},
+                    null, null, null, null
+            );
 
-        if (cursor.moveToFirst())
-            guest = cursorToGuest(cursor);
+            if (cursor.moveToFirst())
+                guest = cursorToGuest(cursor);
 
-        cursor.close();
+            cursor.close();
+        }catch (IllegalStateException e){
+            Log.e("DB", "GET GUEST BY NAME ERROR " + e);
+        }
 
         return guest;
     }
@@ -99,41 +102,48 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Guest getGuestByQrcode(String str) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                TABLE_GUESTS,
-                new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT},
-                QR_CODE + "=? ",
-                new String[]{str},
-                null, null, null, null
-        );
-
-
         Guest guest = null;
 
-        if (cursor.moveToFirst())
-            guest = cursorToGuest(cursor);
+        try {
+            Cursor cursor = db.query(
+                    TABLE_GUESTS,
+                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
+                    QR_CODE + "=? ",
+                    new String[]{str},
+                    null, null, null, null
+            );
 
+            if (cursor.moveToFirst())
+                guest = cursorToGuest(cursor);
 
+            cursor.close();
+        }catch (IllegalStateException e){
+            Log.e("DB", "GET GUEST BY QRCODE ERROR " + e);
+        }
         return guest;
     }
 
     public String getLastUpdatedGuest() {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                TABLE_GUESTS,
-                new String[]{"max(" + UPDATED_AT + ")"},
-                null,
-                null,
-                null, null, null, null
-        );
-
         String lastUpdated = Utils.getOldFormattedDate();
 
-        if (cursor.moveToFirst() && cursor.getString(0) != null)
-            lastUpdated = cursor.getString(0);
+        try {
+            Cursor cursor = db.query(
+                    TABLE_GUESTS,
+                    new String[]{"max(" + UPDATED_AT + ")"},
+                    null,
+                    null,
+                    null, null, null, null
+            );
 
-        cursor.close();
+            if (cursor.moveToFirst() && cursor.getString(0) != null)
+                lastUpdated = cursor.getString(0);
+
+            cursor.close();
+        }catch (IllegalStateException e){
+            Log.e("DB", "GET LAST UPDATED ERROR " + e);
+        }
 
         return lastUpdated;
     }
@@ -197,20 +207,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public String getLastCreatedExternalLog() {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                TABLE_LOGS,
-                new String[]{"max(" + CREATED_AT + ")"},
-                ACCESS_TOKEN + " <> ?",
-                new String[]{Utils.getCellPhoneId(context)},
-                null, null, null, null
-        );
-
         String lastUpdated = Utils.getOldFormattedDate();
 
-        if (cursor.moveToFirst() && cursor.getString(0) != null)
-            lastUpdated = cursor.getString(0);
+        try {
+            Cursor cursor = db.query(
+                    TABLE_LOGS,
+                    new String[]{"max(" + CREATED_AT + ")"},
+                    ACCESS_TOKEN + " <> ?",
+                    new String[]{Utils.getCellPhoneId(context)},
+                    null, null, null, null
+            );
 
-        cursor.close();
+
+            if (cursor.moveToFirst() && cursor.getString(0) != null)
+                lastUpdated = cursor.getString(0);
+
+            cursor.close();
+        }catch (IllegalStateException e){
+            Log.e("DB", "GET LAST CREATED LOG EXTERNAL ERROR " + e);
+        }
 
         return lastUpdated;
     }
@@ -218,20 +233,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean checkIfGuestHasLog(int guestId) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                TABLE_LOGS,
-                new String[]{ID, GUEST_ID},
-                GUEST_ID + "=?",
-                new String[]{Integer.toString(guestId)},
-                null, null, null, null
-        );
-
         boolean hasLog = false;
 
-        if (cursor.moveToFirst())
-            hasLog = true;
+        try {
+            Cursor cursor = db.query(
+                    TABLE_LOGS,
+                    new String[]{ID, GUEST_ID},
+                    GUEST_ID + "=?",
+                    new String[]{Integer.toString(guestId)},
+                    null, null, null, null
+            );
 
-        cursor.close();
+            if (cursor.moveToFirst())
+                hasLog = true;
+
+            cursor.close();
+        }catch (IllegalStateException e){
+            Log.e("DB", "CHECK IF GUEST HAS LOG ERROR " + e);
+        }
 
         return hasLog;
     }

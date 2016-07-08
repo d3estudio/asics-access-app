@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
     private void createGuestLog(Guest guest) {
         String logId = UUID.randomUUID().toString();
         int guestId = guest.getId();
-        String dateTime = new DateTime().toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String dateTime = Utils.getCurrentFormatedDate();
 
         GuestLog guestLog = new GuestLog(logId, dateTime, guestId, Utils.getCellPhoneId(this));
 
@@ -227,12 +227,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 DateTime dateTime = new DateTime();
-                System.out.println("CALLING API HOURLY ***************** " + dateTime);
+                System.out.println("************* CALLING API ***************** " + dateTime);
 
                 callAPIs();
 
             }
-        }, 0, 1, TimeUnit.HOURS);
+        }, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
