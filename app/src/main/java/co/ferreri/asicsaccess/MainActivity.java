@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Utils.hideKeyboardOnOutsideClick(findViewById(R.id.parent), MainActivity.this);
 
         surfaceView = (SurfaceView) findViewById(R.id.camera_view);
         etSearch = (EditText) findViewById(R.id.etSearch);
@@ -172,32 +173,24 @@ public class MainActivity extends AppCompatActivity {
 
         Guest guest = db.getGuestByName(search);
 
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-        if (guest != null && guest.getRemovedAt() == null) {
+        if (guest != null) {
             etSearch.setText("");
-            imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
+            Utils.hideSoftKeyboard(MainActivity.this);
             showDialog(guest);
         } else {
             //centered text on toast
-            toast = Toast.makeText(this, "Usuário não encontrado\nBusque novamente por nome ou email", Toast.LENGTH_SHORT);
-            TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-            if (v != null) v.setGravity(Gravity.CENTER);
-            toast.show();
+            Utils.showCenteredToast(this, "Usuário não encontrado\nBusque novamente por nome ou email", 0);
         }
     }
 
     public void onGuestSearchByQrcode(String qrcode) {
         Guest guest = db.getGuestByQrcode(qrcode);
 
-        if (guest != null && guest.getRemovedAt() == null) {
+        if (guest != null) {
             showDialog(guest);
         } else {
             isOpen = true;
-            toast = Toast.makeText(this, "QRCode inválido, tente novamente", Toast.LENGTH_SHORT);
-            TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-            if (v != null) v.setGravity(Gravity.CENTER);
-            toast.show();
+            Utils.showCenteredToast(this, "QRCode inválido, tente novamente", 0);
 
             surfaceView.postDelayed(new Runnable() {
                 @Override

@@ -83,8 +83,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Cursor cursor = db.query(
                     TABLE_GUESTS,
                     new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
-                    NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ",
+                    "( " + NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ) AND " + REMOVED_AT + " IS NULL",
                     new String[]{str + "%", str + "%"},
+                    null, null, null, null
+            );
+
+            if (cursor.moveToFirst())
+                guest = cursorToGuest(cursor);
+            else
+                guest = getGuestBySurname(str);
+
+            cursor.close();
+        } catch (IllegalStateException e) {
+            Log.e("DB", "GET GUEST BY NAME ERROR " + e);
+        }
+
+        return guest;
+    }
+
+    public Guest getGuestBySurname(String str) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Guest guest = null;
+        try {
+            Cursor cursor = db.query(
+                    TABLE_GUESTS,
+                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
+                    NAME_CLEAN + " LIKE ? AND " + REMOVED_AT + " IS NULL",
+                    new String[]{"%" + str + "%"},
                     null, null, null, null
             );
 
@@ -92,8 +118,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 guest = cursorToGuest(cursor);
 
             cursor.close();
-        }catch (IllegalStateException e){
-            Log.e("DB", "GET GUEST BY NAME ERROR " + e);
+        } catch (IllegalStateException e) {
+            Log.e("DB", "GET GUEST BY SURNAME ERROR " + e);
         }
 
         return guest;
@@ -108,7 +134,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Cursor cursor = db.query(
                     TABLE_GUESTS,
                     new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
-                    QR_CODE + "=? ",
+                    QR_CODE + "= ?",
                     new String[]{str},
                     null, null, null, null
             );
@@ -117,7 +143,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 guest = cursorToGuest(cursor);
 
             cursor.close();
-        }catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             Log.e("DB", "GET GUEST BY QRCODE ERROR " + e);
         }
         return guest;
@@ -141,7 +167,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 lastUpdated = cursor.getString(0);
 
             cursor.close();
-        }catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             Log.e("DB", "GET LAST UPDATED ERROR " + e);
         }
 
@@ -223,7 +249,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 lastUpdated = cursor.getString(0);
 
             cursor.close();
-        }catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             Log.e("DB", "GET LAST CREATED LOG EXTERNAL ERROR " + e);
         }
 
@@ -248,7 +274,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 hasLog = true;
 
             cursor.close();
-        }catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             Log.e("DB", "CHECK IF GUEST HAS LOG ERROR " + e);
         }
 
