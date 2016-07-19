@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Information
-    static final String DB_NAME = "ASICS.TEST2";
+    static final String DB_NAME = "ASICS.TEST";
 
     // database version
     static final int DB_VERSION = 1;
@@ -290,6 +290,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (!cursor.isLast()) {
                 while (cursor.moveToNext()) {
                     GuestLog guest = cursorToGuestLog(cursor);
+                    guestList.add(guest);
+                }
+            }
+            db.close();
+        } catch (Exception e) {
+            Log.e("DB", "GET ALL GUESTS LOGS ERROR " + e);
+        }
+        return guestList;
+    }
+
+    public ArrayList<Guest> getAllGuests() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<Guest> guestList = new ArrayList<>();
+        try {
+            String QUERY = "SELECT * FROM " + TABLE_GUESTS;
+            Cursor cursor = db.rawQuery(QUERY, null);
+            if (!cursor.isLast()) {
+                while (cursor.moveToNext()) {
+                    Guest guest = cursorToGuest(cursor);
                     guestList.add(guest);
                 }
             }

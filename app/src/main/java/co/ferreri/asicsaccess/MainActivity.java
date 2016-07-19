@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import org.joda.time.DateTime;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -167,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onGuestSearchByName() {
+        ArrayList<Guest> list = db.getAllGuests();
         String search = etSearch.getText().toString();
         if (search.length() < 1)
             return;
