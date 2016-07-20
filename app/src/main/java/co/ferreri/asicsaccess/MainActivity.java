@@ -124,86 +124,21 @@ public class MainActivity extends AppCompatActivity {
         db.addGuestLog(guestLog);
     }
 
-    private void showDialog(final Guest guest) {
-        isOpen = true;
-
-        final Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.dialog_layout);
-        dialog.setTitle("Confirmar Presença");
-
-        TextView dialogName = (TextView) dialog.findViewById(R.id.dialog_guest_name);
-        TextView dialogEmail = (TextView) dialog.findViewById(R.id.dialog_guest_email);
-        TextView dialogOccupation = (TextView) dialog.findViewById(R.id.dialog_guest_occupation);
-        Button dialogPrint = (Button) dialog.findViewById(R.id.button_dialog_print);
-        Button dialogWarning = (Button) dialog.findViewById(R.id.warning_dialog);
-        Button dialogCancel = (Button) dialog.findViewById(R.id.button_dialog_cancel);
-        Button dialogConfirm = (Button) dialog.findViewById(R.id.button_dialog_confirm);
-
-        dialogName.setText(guest.getName());
-        dialogEmail.setText(guest.getEmail());
-        dialogOccupation.setText(guest.getOccupation());
-
-        if (db.checkIfGuestHasLog(guest.getId()))
-            dialogWarning.setVisibility(View.VISIBLE);
-
-        dialogPrint.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                System.out.println("PRINT");
-                printerHelper.print(guest);
-            }
-        });
-
-        dialogCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                System.out.println("CANCEL");
-                dialog.dismiss();
-            }
-        });
-
-        dialogConfirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                System.out.println("CONFIRMAR");
-                //createGuestLog(guest);
-                dialog.dismiss();
-            }
-        });
-
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                System.out.println("OnDismiss");
-                isOpen = false;
-            }
-        });
-
-        dialog.getWindow().getAttributes().verticalMargin = 0.1F;
-
-        dialog.show();
-
-
-    }
-
     public void onGuestSearchByName() {
         String search = etSearch.getText().toString();
         if (search.length() < 1)
             return;
 
-//        Guest guest = db.getGuestByName(search);
-        Guest guest = new Guest(5, "Kaleb Portilho", "kaleb.portilho@gmail.com", "12g4kjg1g24jh", "Diretor de Provas", "12/01/1992", null);
+        Guest guest = db.getGuestByName(search);
 
-        showDialog(guest);
-
-//        if (guest != null) {
-//            etSearch.setText("");
-//            Utils.hideSoftKeyboard(MainActivity.this);
-//            showDialog(guest);
-//        } else {
-//            //centered text on toast
-//            Utils.showCenteredToast(this, "Usuário não encontrado\nBusque novamente por nome ou email", 0);
-//        }
+        if (guest != null) {
+            etSearch.setText("");
+            Utils.hideSoftKeyboard(MainActivity.this);
+            showDialog(guest);
+        } else {
+            //centered text on toast
+            Utils.showCenteredToast(this, "Usuário não encontrado\nBusque novamente por nome ou email", 0);
+        }
     }
 
     public void onGuestSearchByQrcode(String qrcode) {
@@ -249,6 +184,68 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }, 0, 1, TimeUnit.MINUTES);
+    }
+
+    private void showDialog(final Guest guest) {
+        isOpen = true;
+
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_layout);
+        dialog.setTitle("Confirmar Presença");
+
+        TextView dialogName = (TextView) dialog.findViewById(R.id.dialog_guest_name);
+        TextView dialogEmail = (TextView) dialog.findViewById(R.id.dialog_guest_email);
+        TextView dialogOccupation = (TextView) dialog.findViewById(R.id.dialog_guest_occupation);
+        Button dialogPrint = (Button) dialog.findViewById(R.id.button_dialog_print);
+        Button dialogWarning = (Button) dialog.findViewById(R.id.warning_dialog);
+        Button dialogCancel = (Button) dialog.findViewById(R.id.button_dialog_cancel);
+        Button dialogConfirm = (Button) dialog.findViewById(R.id.button_dialog_confirm);
+
+        dialogName.setText(guest.getName());
+        dialogEmail.setText(guest.getEmail());
+        dialogOccupation.setText(guest.getOccupation());
+
+        if (db.checkIfGuestHasLog(guest.getId()))
+            dialogWarning.setVisibility(View.VISIBLE);
+
+        dialogPrint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("PRINT");
+                printerHelper.print(guest);
+            }
+        });
+
+        dialogCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("CANCEL");
+                dialog.dismiss();
+            }
+        });
+
+        dialogConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("CONFIRMAR");
+                createGuestLog(guest);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                System.out.println("OnDismiss");
+                isOpen = false;
+            }
+        });
+
+        dialog.getWindow().getAttributes().verticalMargin = 0.1F;
+
+        dialog.show();
+
+
     }
 
     @Override
