@@ -1,22 +1,19 @@
 package co.ferreri.asicsaccess;
 
-import android.content.Context;
 import android.content.DialogInterface;
+import android.net.wifi.WifiManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.Formatter;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import org.joda.time.DateTime;
 
@@ -29,16 +26,16 @@ import java.util.concurrent.TimeUnit;
 import github.nisrulz.qreader.QRDataListener;
 import github.nisrulz.qreader.QREader;
 
-
 public class MainActivity extends AppCompatActivity {
     private SurfaceView surfaceView;
     private EditText etSearch;
     private ImageView btnSearch;
     private QREader qrEader;
-    private Toast toast;
+
 
     private DatabaseHelper db = new DatabaseHelper(this);
     private APIHelper api = new APIHelper(this);
+    private PrinterHelper printerHelper = new PrinterHelper(this);
 
     private boolean isOpen = false;
 
@@ -139,7 +136,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         System.out.println("CONFIRMAR");
-                        createGuestLog(guest);
+                        //createGuestLog(guest);
+                        printerHelper.print(guest);
+
                     }
                 });
 
@@ -168,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onGuestSearchByName() {
-        ArrayList<Guest> list = db.getAllGuests();
         String search = etSearch.getText().toString();
         if (search.length() < 1)
             return;

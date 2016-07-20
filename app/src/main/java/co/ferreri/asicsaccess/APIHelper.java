@@ -13,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class APIHelper {
     private static String LAST_SENT_KEY = "LAST_SENT_KEY";
-    private static String BASE_URL = "http://asicshub.com.br";
+    private static String BASE_URL = "http://10.0.1.64:8080";
     private static String API_URL = BASE_URL + "/api/gateway/";
 
     private DatabaseHelper db;

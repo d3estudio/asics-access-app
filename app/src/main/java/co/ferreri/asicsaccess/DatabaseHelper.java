@@ -300,24 +300,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return guestList;
     }
 
-    public ArrayList<Guest> getAllGuests() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<Guest> guestList = new ArrayList<>();
-        try {
-            String QUERY = "SELECT * FROM " + TABLE_GUESTS;
-            Cursor cursor = db.rawQuery(QUERY, null);
-            if (!cursor.isLast()) {
-                while (cursor.moveToNext()) {
-                    Guest guest = cursorToGuest(cursor);
-                    guestList.add(guest);
-                }
-            }
-            db.close();
-        } catch (Exception e) {
-            Log.e("DB", "GET ALL GUESTS LOGS ERROR " + e);
-        }
-        return guestList;
-    }
+//    public ArrayList<Guest> getAllGuests() {
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        ArrayList<Guest> guestList = new ArrayList<>();
+//        try {
+//            String QUERY = "SELECT * FROM " + TABLE_GUESTS;
+//            Cursor cursor = db.rawQuery(QUERY, null);
+//            if (!cursor.isLast()) {
+//                while (cursor.moveToNext()) {
+//                    Guest guest = cursorToGuest(cursor);
+//                    guestList.add(guest);
+//                }
+//            }
+//            db.close();
+//        } catch (Exception e) {
+//            Log.e("DB", "GET ALL GUESTS LOGS ERROR " + e);
+//        }
+//        return guestList;
+//    }
 
     /****************
      * HELPERS
