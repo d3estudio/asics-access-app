@@ -3,15 +3,9 @@ package co.ferreri.asicsaccess;
 import android.content.Context;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 
-import com.brother.ptouch.sdk.LabelInfo;
 import com.brother.ptouch.sdk.NetPrinter;
 import com.brother.ptouch.sdk.Printer;
-import com.brother.ptouch.sdk.PrinterInfo;
-import com.brother.ptouch.sdk.PrinterStatus;
-
-import java.io.IOException;
 
 public class PrinterHelper {
     private Printer printer;

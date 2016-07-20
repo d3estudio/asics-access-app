@@ -1,5 +1,6 @@
 package co.ferreri.asicsaccess;
 
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.net.wifi.WifiManager;
 import android.support.v7.app.AlertDialog;
@@ -12,8 +13,10 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.joda.time.DateTime;
 
@@ -46,6 +49,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Utils.hideKeyboardOnOutsideClick(findViewById(R.id.parent), MainActivity.this);
 
+        init();
+        callAPIsHourly();
+        createQreader();
+
+    }
+
+    private void init(){
         surfaceView = (SurfaceView) findViewById(R.id.camera_view);
         etSearch = (EditText) findViewById(R.id.etSearch);
         btnSearch = (ImageView) findViewById(R.id.btnSearch);
@@ -83,9 +93,6 @@ public class MainActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
             }
         });
-
-        callAPIsHourly();
-        createQreader();
     }
 
     private void createQreader() {
@@ -120,38 +127,51 @@ public class MainActivity extends AppCompatActivity {
     private void showDialog(final Guest guest) {
         isOpen = true;
 
-        String warning = db.checkIfGuestHasLog(guest.getId()) ? "Convidado já realizou checkin" : "";
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_layout);
+        dialog.setTitle("Confirmar Presença");
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Confirmar presença?");
-        builder.setMessage(guest.getName() + "\n" +
-                guest.getEmail() + "\n" +
-                guest.getOccupation() + "\n\n" +
-                warning
-        );
+        TextView dialogName = (TextView) dialog.findViewById(R.id.dialog_guest_name);
+        TextView dialogEmail = (TextView) dialog.findViewById(R.id.dialog_guest_email);
+        TextView dialogOccupation = (TextView) dialog.findViewById(R.id.dialog_guest_occupation);
+        Button dialogPrint = (Button) dialog.findViewById(R.id.button_dialog_print);
+        Button dialogWarning = (Button) dialog.findViewById(R.id.warning_dialog);
+        Button dialogCancel = (Button) dialog.findViewById(R.id.button_dialog_cancel);
+        Button dialogConfirm = (Button) dialog.findViewById(R.id.button_dialog_confirm);
 
-        String positiveText = "CONFIRMAR";
-        builder.setPositiveButton(positiveText,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        System.out.println("CONFIRMAR");
-                        //createGuestLog(guest);
-                        printerHelper.print(guest);
+        dialogName.setText(guest.getName());
+        dialogEmail.setText(guest.getEmail());
+        dialogOccupation.setText(guest.getOccupation());
 
-                    }
-                });
+        if (db.checkIfGuestHasLog(guest.getId()))
+            dialogWarning.setVisibility(View.VISIBLE);
 
-        String negativeText = getString(android.R.string.cancel);
-        builder.setNegativeButton(negativeText,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        System.out.println("CANCEL");
-                    }
-                });
+        dialogPrint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("PRINT");
+                printerHelper.print(guest);
+            }
+        });
 
-        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        dialogCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("CANCEL");
+                dialog.dismiss();
+            }
+        });
+
+        dialogConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("CONFIRMAR");
+                //createGuestLog(guest);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 System.out.println("OnDismiss");
@@ -159,11 +179,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        AlertDialog dialog = builder.create();
         dialog.getWindow().getAttributes().verticalMargin = 0.1F;
 
-
         dialog.show();
+
+
     }
 
     public void onGuestSearchByName() {
@@ -171,16 +191,19 @@ public class MainActivity extends AppCompatActivity {
         if (search.length() < 1)
             return;
 
-        Guest guest = db.getGuestByName(search);
+//        Guest guest = db.getGuestByName(search);
+        Guest guest = new Guest(5, "Kaleb Portilho", "kaleb.portilho@gmail.com", "12g4kjg1g24jh", "Diretor de Provas", "12/01/1992", null);
 
-        if (guest != null) {
-            etSearch.setText("");
-            Utils.hideSoftKeyboard(MainActivity.this);
-            showDialog(guest);
-        } else {
-            //centered text on toast
-            Utils.showCenteredToast(this, "Usuário não encontrado\nBusque novamente por nome ou email", 0);
-        }
+        showDialog(guest);
+
+//        if (guest != null) {
+//            etSearch.setText("");
+//            Utils.hideSoftKeyboard(MainActivity.this);
+//            showDialog(guest);
+//        } else {
+//            //centered text on toast
+//            Utils.showCenteredToast(this, "Usuário não encontrado\nBusque novamente por nome ou email", 0);
+//        }
     }
 
     public void onGuestSearchByQrcode(String qrcode) {
