@@ -59,7 +59,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/colorAccent"
+            android:textColor="#00a59a"
             android:background="@drawable/right_button_selector"
             android:text="cancelar" />
 
@@ -68,7 +68,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/colorAccent"
+            android:textColor="#00a59a"
             android:background="@drawable/left_button_selector"
             android:text="confirmar" />
 

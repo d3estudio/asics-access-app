@@ -2,13 +2,10 @@ package co.ferreri.asicsaccess;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.net.wifi.WifiManager;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
@@ -143,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
     public void onGuestSearchByQrcode(String data)
     {
         String qrcode = data.replaceAll("\\s+","");
-        Log.e("RcoDE", "/"+data+"/");
         Guest guest = db.getGuestByQrcode(qrcode);
 
         if (guest != null) {
@@ -232,6 +228,7 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("CONFIRMAR");
                 createGuestLog(guest);
                 dialog.dismiss();
+                Utils.showCenteredToast(MainActivity.this, "Convidado confirmado com sucesso", 0);
             }
         });
 
