@@ -33,6 +33,7 @@
         android:layout_height="wrap_content"
         android:drawableStart="@drawable/ic_local_printshop_black_24dp"
         android:drawablePadding="10dp"
+        android:textColor="@drawable/print_button_selector"
         android:background="@android:color/transparent"
         android:text="Imprimir" />
 

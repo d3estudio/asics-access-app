@@ -61,7 +61,7 @@ public class PrinterHelper {
 
                 try {
 
-                    String[] splitedName = guest.getName().split("\\s+");
+                    String[] splitedName = guest.getNameClean().split("\\s+");
 
                     int firstNameLength = (int) Math.ceil((double) splitedName.length / 2);
 
@@ -85,8 +85,10 @@ public class PrinterHelper {
                     Boolean val = printer.startPTTPrint(5, null);
                     Log.e("print", "startPTTPrint >>>> " + val);
 
+                    String printText = firstName + ";" + lastName + ";" + guest.getQrCode();
+
                     // Replace text
-                    printer.replaceText(firstName + ";" + lastName + ";" + guest.getQrCode());
+                    printer.replaceText(printText);
 
                     // Transmit P-touc Template command print data
                     PrinterStatus status = printer.flushPTTPrint();

@@ -20,7 +20,6 @@ import android.widget.TextView;
 
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -141,7 +140,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onGuestSearchByQrcode(String qrcode) {
+    public void onGuestSearchByQrcode(String data)
+    {
+        String qrcode = data.replaceAll("\\s+","");
+        Log.e("RcoDE", "/"+data+"/");
         Guest guest = db.getGuestByQrcode(qrcode);
 
         if (guest != null) {

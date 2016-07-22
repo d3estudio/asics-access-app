@@ -26,6 +26,9 @@ public class Guest {
     @SerializedName("removed_at")
     @Expose
     private String removedAt;
+    @SerializedName("nameClean")
+    @Expose
+    private String nameClean;
 
     public Guest() {
     }
@@ -38,7 +41,7 @@ public class Guest {
      * @param name
      * @param qrCode
      */
-    public Guest(int id, String name, String email, String qrCode, String occupation, String updatedAt, String removedAt) {
+    public Guest(int id, String name, String email, String qrCode, String occupation, String updatedAt, String removedAt, String nameClean) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -46,6 +49,7 @@ public class Guest {
         this.occupation = occupation;
         this.updatedAt = updatedAt;
         this.removedAt = removedAt;
+        this.nameClean = nameClean;
     }
 
     /**
@@ -144,6 +148,20 @@ public class Guest {
      */
     public void setRemovedAt(String removedAt) {
         this.removedAt = removedAt;
+    }
+
+    /**
+     * @return The nameClean
+     */
+    public String getNameClean() {
+        return nameClean;
+    }
+
+    /**
+     * @param nameClean The name
+     */
+    public void setNameClean(String nameClean) {
+        this.nameClean = nameClean;
     }
 
 }

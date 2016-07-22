@@ -82,7 +82,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             Cursor cursor = db.query(
                     TABLE_GUESTS,
-                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
+                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT, NAME_CLEAN},
                     "( " + NAME_CLEAN + " LIKE ? OR " + EMAIL + " LIKE ? ) AND " + REMOVED_AT + " IS NULL",
                     new String[]{str + "%", str + "%"},
                     null, null, null, null
@@ -108,7 +108,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             Cursor cursor = db.query(
                     TABLE_GUESTS,
-                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
+                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT, NAME_CLEAN},
                     NAME_CLEAN + " LIKE ? AND " + REMOVED_AT + " IS NULL",
                     new String[]{"%" + str + "%"},
                     null, null, null, null
@@ -133,7 +133,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             Cursor cursor = db.query(
                     TABLE_GUESTS,
-                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT},
+                    new String[]{ID, NAME, EMAIL, QR_CODE, OCCUPATION, UPDATED_AT, REMOVED_AT, NAME_CLEAN},
                     QR_CODE + "= ?",
                     new String[]{str},
                     null, null, null, null
@@ -331,7 +331,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.getString(3),
                 cursor.getString(4),
                 cursor.getString(5),
-                cursor.getString(6)
+                cursor.getString(6),
+                cursor.getString(7)
         );
     }
 
