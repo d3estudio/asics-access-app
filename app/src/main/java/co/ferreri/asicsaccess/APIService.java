@@ -21,3 +21,8 @@ public interface APIService {
     @POST("logs/log")
     Call<Void> sendLogs(@Body LogList logs);
 }
+
+interface APISendName{
+    @POST("logs/log")
+    Call<Void> sendLogs(@Body LogList logs);
+}

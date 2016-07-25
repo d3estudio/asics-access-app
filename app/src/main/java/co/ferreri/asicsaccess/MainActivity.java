@@ -1,7 +1,9 @@
 package co.ferreri.asicsaccess;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -128,6 +130,9 @@ public class MainActivity extends AppCompatActivity {
         Guest guest = db.getGuestByName(search);
 
         if (guest != null) {
+            // Get instance of Vibrator from current Context
+            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            v.vibrate(400);
             etSearch.setText("");
             Utils.hideSoftKeyboard(MainActivity.this);
             showDialog(guest);
@@ -141,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
     {
         String qrcode = data.replaceAll("\\s+","");
         Guest guest = db.getGuestByQrcode(qrcode);
-
+        System.out.println("/"+data+"/");
         if (guest != null) {
             showDialog(guest);
         } else {

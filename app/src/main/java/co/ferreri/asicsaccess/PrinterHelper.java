@@ -67,11 +67,11 @@ public class PrinterHelper {
 
                     String firstName = "", lastName = "";
                     for (int i = 0; i < firstNameLength; i++) {
-                        firstName = firstName + splitedName[i] + " ";
+                        firstName = firstName + splitedName[i].toUpperCase() + " ";
                     }
 
                     for (int i = firstNameLength; i < splitedName.length; i++) {
-                        lastName = lastName + splitedName[i] + " ";
+                        lastName = lastName + splitedName[i].toUpperCase() + " ";
                     }
 
                     PrinterInfo printInfo = new PrinterInfo();
@@ -85,12 +85,12 @@ public class PrinterHelper {
                     Boolean val = printer.startPTTPrint(5, null);
                     Log.e("print", "startPTTPrint >>>> " + val);
 
-                    String printText = firstName + ";" + lastName + ";" + guest.getQrCode();
+                    String printText = firstName + ";" + lastName + ";" + guest.getQrCode()+";";
 
                     // Replace text
                     printer.replaceText(printText);
 
-                    // Transmit P-touc Template command print data
+                    // Transmit P-touch Template command print data
                     PrinterStatus status = printer.flushPTTPrint();
 
                     if (status.errorCode != PrinterInfo.ErrorCode.ERROR_NONE) {

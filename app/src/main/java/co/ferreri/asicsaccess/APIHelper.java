@@ -13,8 +13,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class APIHelper {
     private static String LAST_SENT_KEY = "LAST_SENT_KEY";
-//    private static String BASE_URL = "http://10.0.1.64:8080";
-    private static String BASE_URL = "http://asicshub.com.br";
+    private static String BASE_URL = "http://10.0.1.240:8080";
+//    private static String BASE_URL = "http://www.asicshub.com.br";
     private static String API_URL = BASE_URL + "/api/gateway/";
 
     private DatabaseHelper db;
@@ -22,6 +22,7 @@ public class APIHelper {
     private Context context;
 
     private APIService apiService;
+    private APISendName apiSendName;
 
     public APIHelper(Context context) {
         this.context = context;
@@ -34,6 +35,13 @@ public class APIHelper {
                 .build();
 
         this.apiService = retrofit.create(APIService.class);
+
+        Retrofit retrofit2 = new Retrofit.Builder()
+                .baseUrl(API_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        this.apiSendName = retrofit2.create(APISendName.class);
 
     }
 
