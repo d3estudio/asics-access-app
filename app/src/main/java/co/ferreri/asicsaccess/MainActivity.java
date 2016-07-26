@@ -214,7 +214,6 @@ public class MainActivity extends AppCompatActivity {
         dialogPrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("PRINT");
                 printerHelper.print(guest);
             }
         });
@@ -222,7 +221,6 @@ public class MainActivity extends AppCompatActivity {
         dialogCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("CANCEL");
                 dialog.dismiss();
             }
         });
@@ -230,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         dialogConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("CONFIRMAR");
+                api.sendNameToScreen(guest.getName());
                 createGuestLog(guest);
                 dialog.dismiss();
                 Utils.showCenteredToast(MainActivity.this, "Convidado confirmado com sucesso", 0);

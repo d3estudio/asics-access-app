@@ -4,7 +4,9 @@ import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 
 public interface APIService {
@@ -23,6 +25,6 @@ public interface APIService {
 }
 
 interface APISendName{
-    @POST("logs/log")
-    Call<Void> sendLogs(@Body LogList logs);
+    @GET("post")
+    Call<Void> sendName(@Query("name") String name);
 }

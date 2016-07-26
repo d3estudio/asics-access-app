@@ -13,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class APIHelper {
     private static String LAST_SENT_KEY = "LAST_SENT_KEY";
-    private static String BASE_URL = "http://10.0.1.240:8080";
+    private static String BASE_URL = "http://stage.asicshub.com.br";
 //    private static String BASE_URL = "http://www.asicshub.com.br";
     private static String API_URL = BASE_URL + "/api/gateway/";
 
@@ -29,6 +29,7 @@ public class APIHelper {
 
         this.db = new DatabaseHelper(context);
 
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(API_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -37,7 +38,7 @@ public class APIHelper {
         this.apiService = retrofit.create(APIService.class);
 
         Retrofit retrofit2 = new Retrofit.Builder()
-                .baseUrl(API_URL)
+                .baseUrl("http://10.0.0.100:8080")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -134,6 +135,20 @@ public class APIHelper {
         else
             Log.e("API", "LOG LIST IS EMPTY " + list.size());
 
+    }
+
+    public void sendNameToScreen(String name){
+        apiSendName.sendName(name).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                Log.e("API", "SEND NAME SUCCESS " + response.raw());
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("API", "SEND NAME FAILURE " + t.getLocalizedMessage());
+            }
+        });
     }
 
 }
