@@ -265,7 +265,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Cursor cursor = db.query(
                     TABLE_LOGS,
                     new String[]{ID, GUEST_ID},
-                    GUEST_ID + "=?",
+                    GUEST_ID + "=? AND " + CREATED_AT + " >= '" + Utils.getMidnightFormatedDate() + "'",
                     new String[]{Integer.toString(guestId)},
                     null, null, null, null
             );

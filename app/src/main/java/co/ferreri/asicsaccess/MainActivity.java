@@ -14,6 +14,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private SurfaceView surfaceView;
     private EditText etSearch;
     private ImageView btnSearch;
+    private ImageButton btnSync;
     private QREader qrEader;
 
 
@@ -53,10 +55,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void init(){
+    private void init() {
         surfaceView = (SurfaceView) findViewById(R.id.camera_view);
         etSearch = (EditText) findViewById(R.id.etSearch);
         btnSearch = (ImageView) findViewById(R.id.btnSearch);
+        btnSync = (ImageButton) findViewById(R.id.logo);
+
+        btnSync.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callAPIs();
+                Utils.showCenteredToast(MainActivity.this, "Sincronizando...", 0);
+            }
+        });
+
+
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,11 +155,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onGuestSearchByQrcode(String data)
-    {
-        String qrcode = data.replaceAll("\\s+","");
+    public void onGuestSearchByQrcode(String data) {
+        String qrcode = data.replaceAll("\\s+", "");
         Guest guest = db.getGuestByQrcode(qrcode);
-        System.out.println("/"+data+"/");
+        System.out.println("/" + data + "/");
         if (guest != null) {
             showDialog(guest);
         } else {

@@ -39,6 +39,7 @@ public class APIHelper {
 
         Retrofit retrofit2 = new Retrofit.Builder()
                 .baseUrl("http://10.0.0.100:8080")
+//                .baseUrl("http://welcome.asicshub.com.br:49160")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -69,7 +70,7 @@ public class APIHelper {
     }
 
     public void loadAllGuestLogsSince() {
-        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), db.getLastCreatedExternalLog());
+        LastCreated lastCreated = new LastCreated(Utils.getCellPhoneId(context), Utils.getMidnightFormatedDate());
         apiService.loadAllGuestLogsSince(lastCreated).enqueue(new Callback<ArrayList<GuestLog>>() {
             @Override
             public void onResponse(Call<ArrayList<GuestLog>> call, Response<ArrayList<GuestLog>> response) {
